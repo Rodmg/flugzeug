@@ -1,0 +1,366 @@
+
+import { Model } from 'sequelize';
+import { Request, Response, Router } from 'express';
+import { log } from './Log';
+import { config } from './../config/config';
+import * as _ from 'lodash';
+import { SocketRouter, SocketRequest, SocketResponse } from './../libraries/SocketRest';
+
+export class Controller {
+
+  protected model: Model<any, any>;
+  public name: string; // Name used for the route, all lowercase
+  protected router: Router;
+  protected socketRouter: SocketRouter;
+
+  constructor() {
+    this.router = Router();
+    this.socketRouter = new SocketRouter();
+    // Initialize req.session
+    this.router.use(function(req: Request, res: Response, next) {
+      if(req.session == null) req.session = {};
+      next();
+    });
+  }
+
+  routes(): Router {
+    // Example routes
+    // WARNING: Routes without policies
+    // You should add policies before your method
+    this.router.get('/', (req, res) => this.find(req, res));
+    this.router.get('/:id', (req, res) => this.findOne(req, res));
+    this.router.post('/', (req, res) => this.create(req, res));
+    this.router.put('/:id', (req, res) => this.update(req, res));
+    this.router.delete('/:id', (req, res) => this.destroy(req, res));
+
+    return this.router;
+  }
+
+  socketRoutes(): SocketRouter {
+    return this.socketRouter;
+  }
+
+  // Sails query format retrocompatibility
+  protected parseWhereSails(where: any): any {
+
+    function recursiveParse(obj: any) {
+      _.each(obj, (val: any, key: any) => {
+        if(_.isObjectLike(val)) return recursiveParse(val);
+        if(_.isString(val) || _.isNumber(val)) {
+          if(key === 'contains') {
+            obj['$like'] = `%${val}%`;
+            delete obj[key];
+          }
+          if(key === 'startsWith') {
+            obj['$like'] = `${val}%`;
+            delete obj[key];
+          }
+          if(key === 'endsWith') {
+            obj['$like'] = `%${val}`;
+            delete obj[key];
+          }
+          if(key === '!') {
+            obj['$not'] = val;
+            delete obj[key];
+          }
+          if(key === 'or') {
+            obj['$or'] = val;
+            delete obj[key];
+          }
+          if(key === '<') {
+            obj['$lt'] = val;
+            delete obj[key];
+          }
+          if(key === '<=') {
+            obj['$lte'] = val;
+            delete obj[key];
+          }
+          if(key === '>') {
+            obj['$gt'] = val;
+            delete obj[key];
+          }
+          if(key === '>=') {
+            obj['$gte'] = val;
+            delete obj[key];
+          }
+          if(key === 'like') {
+            obj['$like'] = val;
+            delete obj[key];
+          }
+        }
+      });
+    }
+
+    recursiveParse(where);
+
+    return where;
+  }
+
+  protected parseWhere(req: Request): any {
+    // Look for explicitly specified `where` parameter.
+    let where: any = req.query.where;
+    // If `where` parameter is a string, try to interpret it as JSON
+    if(_.isString(where)) {
+      try {
+        where = JSON.parse(where);
+      }
+      catch(e) {
+        where = null;
+      }
+    }
+    // If `where` has not been specified, but other unbound parameter variables
+    // **ARE** specified, build the `where` option using them.
+    if(!where) {
+      // Prune params which aren't fit to be used as `where` criteria
+      // to build a proper where query
+      where = req.params;
+      // Omit built-in runtime config (like query modifiers)
+      where = _.omit(where, ['limit', 'skip', 'sort']);
+      // Omit any params w/ undefined values
+      where = _.omit(where, function(p) {
+        if (_.isUndefined(p)) {return true;}
+      });
+    }
+
+    // Merge with req.session.where (Useful for enforcing policies)
+    if(req.session == null) req.session = {};
+    where = _.merge(where, req.session.where || {});
+
+    where = this.parseWhereSails(where);
+
+    // Check `WHERE` clause for unsupported usage.
+    // (throws if bad structure is detected)
+    //validateWhereClauseStrict(where);
+
+    // Return final `where`.
+    return where;
+
+  }
+
+  protected parseLimit(req: Request): number {
+    let limit = req.query.limit || config.api.limit;
+    let result: number = +limit;
+    return result;
+  }
+
+  protected parseOffset(req: Request): number {
+    let skip = req.query.offset || req.query.skip || config.api.offset;
+    let result: number = +skip;
+    return result;
+  }
+
+  protected parseOrder(req: Request): any {
+    let sort = req.query.order || req.query.sort;
+    if(_.isUndefined(sort)) { return undefined; }
+
+    // If `sort` is a string, attempt to JSON.parse() it.
+    // (e.g. `{"name": 1}`)
+    if (_.isString(sort)) {
+      try {
+        sort = JSON.parse(sort);
+      }
+      // If it is not valid JSON, then fall back to interpreting it as-is.
+      // (e.g. "name ASC")
+      catch(e) {
+        // Put it in array form for avoiding errors with reserved words
+        try {
+          let parts: Array<string> = sort.split(' ');
+          let colName: string = parts[0];
+          let orderParam: string = parts[1];
+          if(orderParam !== 'ASC' && orderParam !== 'DESC') throw new Error('invalid query');
+          sort = [ [colName, orderParam] ];
+        }
+        catch(e) {
+          // Invalid string
+          sort = '';
+        }
+      }
+    }
+    return sort;
+  }
+
+  protected parseInclude(req: Request): Array<any> {
+    let include: Array<any> = [];
+    let populate: string | Array<string> = req.query.include || req.query.populate;
+
+    // Convert the string representation of the filter list to an Array. We
+    // need this to provide flexibility in the request param. This way both
+    // list string representations are supported:
+    //   /model?populate=alias1,alias2,alias3
+    //   /model?populate=[alias1,alias2,alias3]
+    if (typeof populate === 'string') {
+      populate = populate.replace(/\[|\]/g, '');
+      populate = (populate) ? populate.split(',') : [];
+    }
+    else return include;
+
+    // Assign items to strings
+    if(this.model.getAssociations == null) return include;
+    let associations = this.model.getAssociations();
+    for(let name of populate) {
+      if(associations[name] != null) {
+        let item = _.pick(associations[name], ['model', 'as', 'include']);
+        include.push(item);
+      }
+    }
+
+    return include;
+  }
+
+  public static ok(res: Response, data?: any) {
+    if(data == null) data = 'OK';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    return res.status(200).json(data);
+  }
+
+  public static created(res: Response, data?: any) {
+    if(data == null) data = 'Created';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    return res.status(201).json(data);
+  }
+
+  public static noContent(res: Response) {
+    return res.status(204).end();
+  }
+
+  public static badRequest(res: Response, data?: any) {
+    if(data == null) data = 'Bad Request';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    return res.status(400).json(data);
+  }
+
+  public static unauthorized(res: Response, data?: any) {
+    if(data == null) data = 'Unauthorized';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    res.status(401).json(data);
+  }
+
+  public static forbidden(res: Response, data?: any) {
+    if(data == null) data = 'Forbidden';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    res.status(403).json(data);
+  }
+
+  public static notFound(res: Response, data?: any) {
+    if(data == null) data = 'Not Found';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    res.status(404).json(data);
+  }
+
+  public static serverError(res: Response, data?: any) {
+    // TODO: consideer option for sending err on debug mode
+    log.error(data);
+    res.status(500).send('Internal Server Error');
+  }
+
+  public static timeout(res: Response, data?: any) {
+    if(data == null) data = 'Timeout';
+    if(Buffer.isBuffer(data)) data = data.toString();
+    res.status(504).json(data);
+  }
+
+  create(req: Request, res: Response) {
+    let values: any = req.body;
+    if(!_.isObject(values)) return Controller.serverError(res, new Error('Invalid data in body'));
+    this.model.create(values)
+      .then((result) => {
+        res.status(201).json(result);
+        return null;
+      })
+      .catch((err) => {
+        if(err) Controller.serverError(res, err);
+      });
+  }
+
+  destroy(req: Request, res: Response) {
+    // For applying constraints (usefull with policies)
+    let where = this.parseWhere(req);
+    where.id = req.params.id;
+    this.model.findOne({
+      where: where
+    })
+      .then((result) => {
+        if(!result) {
+          res.status(404).end();
+          throw null;
+        }
+        return result.destroy();
+      })
+      .then((result) => {
+        if(result != null) res.status(204).end();
+        return null;
+      })
+      .catch((err) => {
+        if(err) Controller.serverError(res, err);
+      });
+  }
+
+  find(req: Request, res: Response) {
+    this.model.findAndCountAll({
+      where: this.parseWhere(req),
+      limit: this.parseLimit(req),
+      offset: this.parseOffset(req),
+      order: this.parseOrder(req),
+      include: this.parseInclude(req)
+    })
+      .then((result) => {
+        res.set('Content-Count', String(result.count));
+        res.status(200).json(result.rows);
+        return null;
+      })
+      .catch((err) => {
+        if(err) Controller.serverError(res, err);
+      });
+  }
+
+  findOne(req: Request, res: Response) {
+    // For applying constraints (usefull with policies)
+    let where = this.parseWhere(req);
+    where.id = req.params.id;
+    this.model.findOne({
+      where: where,
+      include: this.parseInclude(req)
+    })
+      .then((result) => {
+        if(!result) res.status(404).end();
+        else res.status(200).json(result);
+        return null;
+      })
+      .catch((err) => {
+        if(err) Controller.serverError(res, err);
+      })
+  }
+
+  update(req: Request, res: Response) {
+    let id = req.params.id;
+    // Get values
+    let values: any = req.body;
+    if(!_.isObject(values)) return Controller.serverError(res, new Error('Invalid data in body'));
+    // Make sure id is not changed in the values to update
+    values.id = id;
+    // For applying constraints (usefull with policies)
+    let where = this.parseWhere(req);
+    where.id = id;
+    // Update
+    this.model.findOne({
+      where: where,
+      include: this.parseInclude(req)
+    })
+    .then((result) => {
+      if(!result) {
+        res.status(404).end();
+        throw null;
+      }
+      return result.update(values);
+    })
+    .then((result) => {
+      if(!result) res.status(404).end();
+      else res.status(200).json(result);
+      return null;
+    })
+    .catch((err) => {
+      if(err) Controller.serverError(res, err);
+    });
+  }
+
+}

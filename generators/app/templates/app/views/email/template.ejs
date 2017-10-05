@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= __('Blastbot Notifications') %></title>
+
+  <style type="text/css">
+    <% include partials/style %>
+  </style>
+
+</head>
+
+<body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">
+  <center>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable">
+      <tr>
+        <td align="center" valign="top" id="bodyCell">
+          <!-- BEGIN TEMPLATE // -->
+          <table border="0" cellpadding="0" cellspacing="0" width="600" id="templateContainer">
+            <tr>
+              <td align="center" valign="top">
+                <!-- BEGIN PREHEADER // -->
+                <table border="0" cellpadding="0" cellspacing="0" width="600" id="templatePreheader">
+                  <tr>
+                    <td valign="top" class="preheaderContainer" style="padding-top:9px;"></td>
+                  </tr>
+                </table>
+                <!-- // END PREHEADER -->
+              </td>
+            </tr>
+            <tr>
+              <td align="center" valign="top">
+                <!-- BEGIN HEADER // -->
+                <% include partials/header %>
+                <!-- // END HEADER -->
+              </td>
+            </tr>
+            <tr>
+              <td align="center" valign="top">
+                <!-- BEGIN BODY // -->
+                <%- include(page) %>
+                <!-- // END BODY -->
+              </td>
+            </tr>
+            <tr>
+              <td align="center" valign="top">
+                <!-- BEGIN FOOTER // -->
+                <% include partials/footer %>
+                <!-- // END FOOTER -->
+              </td>
+            </tr>
+          </table>
+          <!-- // END TEMPLATE -->
+        </td>
+      </tr>
+    </table>
+  </center>
+</body>
+
+</html>
+

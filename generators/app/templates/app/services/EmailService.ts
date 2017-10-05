@@ -1,0 +1,65 @@
+
+import * as path from 'path';
+import * as nodemailer from 'nodemailer';
+import * as mailgunTransport from 'nodemailer-mailgun-transport';
+import * as ejs from 'ejs';
+import { log } from './../libraries/Log';
+import { config } from './../config/config';
+import i18n from './../libraries/i18n';
+
+class EmailService {
+
+	mailer: nodemailer.Transporter;
+
+	constructor() {
+		this.mailer = nodemailer.createTransport(mailgunTransport(config.email));
+	}
+
+	private send(email: string, subject: string, html: string): Promise<any> {
+		return new Promise((resolve, reject) => {
+			this.mailer.sendMail({
+				from: 'MyApp <no-reply@example.com>',
+				to: email,
+				subject: subject,
+				html: html
+			}, (err, info: any) => {
+				if (err) return reject(err);
+				return resolve(info);
+			});
+		});
+	}
+
+	private compileTemplate(context: any): Promise<string> {
+		return new Promise((resolve, reject) => {
+			ejs.renderFile(path.join(__dirname, '../views/email/template.ejs'), context, (err, str) => {
+				if(err) return reject(err);
+				return resolve(str);
+			});
+		});
+	}
+
+	sendEmail(email: string, subject: string, page: string, locale: string, context?: any ): Promise<any> {
+		if(context == null) context = {};
+		context.page = page;
+
+		let t: any = {};
+    i18n.init(t);
+    if(locale == null) locale = 'en';
+    t.setLocale(locale);
+
+    context.__ = t.__;
+
+    // Translate subject
+    subject = t.__(subject);
+
+		return this.compileTemplate(context)
+		.then((html: string) => {
+			log.debug(`Sending ${page} email to: ${email}`);
+			return this.send(email, subject, html);
+		});
+	}
+
+}
+
+const emailService = new EmailService();
+export default emailService;

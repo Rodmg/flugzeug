@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Rodrigo Méndez Gamboa",
+      "authorEmail": "rmendez@makerlab.mx",
+      "authorUrl": "http://rodrigomendez.me"
+    }
+  }
+}

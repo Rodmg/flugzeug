@@ -1,0 +1,35 @@
+
+require('dotenv').config();
+
+import { log } from './libraries/Log';
+import { setupDB } from './db';
+import { setupServer } from './server';
+<% if (useWebsockets) { %>
+import { io, setupSockets } from './sockets';
+<% } %>
+import JanitorService from './services/JanitorService';
+<% if (useMqtt) { %>
+import MqttClient from './services/MqttClient';
+<% } %>
+import EventService from './services/EventService';
+
+process.env.TZ = 'UTC'; // IMPORTANT For correct timezone management with DB, Tasks etc.
+
+// Debug, not necessary on production TODO remove
+const importedModels = require('require-dir-all')('models');
+
+setupDB()
+  .then(() => {
+    <% if (useMqtt) { %>
+    MqttClient.init();
+    <% } %>
+    JanitorService.init();
+    EventService.init();
+    <% if (useWebsockets) { %>
+    setupSockets();
+    <% } %>
+    setupServer();
+  })
+  .catch((err) => {
+    log.error(err);
+  });
