@@ -8,7 +8,7 @@ export const config: any = {
   env: process.env.NODE_ENV || 'development',
 
   jwt: {
-    secret: process.env.JWT_SECRET || '<%= jwt_secret %>',
+    secret: process.env.JWT_SECRET || '<%- jwt_secret %>',
     access: {
       expiry: {
         unit: 'months',
@@ -36,9 +36,10 @@ export const config: any = {
   },
 
   email: {
+    from_address: process.env.EMAIL_FROM_ADDRESS || 'MyApp <no-reply@example.com>',
     auth: {
-      api_key: process.env.EMAIL_API_KEY || '<your mailgun api key>',
-      domain: process.env.EMAIL_DOMAIN || '<your mailgun domain>'
+      api_key: process.env.EMAIL_API_KEY || '(your mailgun api key)',
+      domain: process.env.EMAIL_DOMAIN || '(your mailgun domain)'
     }
   },
 
@@ -66,11 +67,11 @@ export const config: any = {
     protocol: process.env.URLS_PROTOCOL || 'http',
     url: process.env.URLS_URL || ip.address(),
     port: process.env.URLS_PORT ? String(process.env.URLS_PORT) : '',
-    apiRoot: process.env.URLS_API_ROOOT || '/api/v1',
+    apiRoot: process.env.URLS_API_ROOT || '/api/v1',
   },
 
   db: {
-    name: process.env.DB_NAME || '<%= dbname %>',
+    name: process.env.DB_NAME || '<%- dbname %>',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     options: {
@@ -83,9 +84,9 @@ export const config: any = {
   },
 
   mqtt: {
-    user_secret: process.env.MQTT_USER_SECRET || 'Token protector de usuario',
+    user_secret: process.env.MQTT_USER_SECRET || 'Your MQTT User Secret',
     user_map: process.env.MQTT_USER_MAP ||'afbgchdiej',
-    password_secret: process.env.MQTT_PASSWORD_SECRET || 'Super Token protector de password',
+    password_secret: process.env.MQTT_PASSWORD_SECRET || 'Your MQTT Password Secret',
     password_map: process.env.MQTT_PASSWORD_MAP ||'fagbhcidje',
     keepalive: 10,
     connectTimeout: 10*1000,

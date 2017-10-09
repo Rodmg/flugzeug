@@ -9,12 +9,12 @@ export const log = new winston.Logger();
 export const requestLog = new winston.Logger();
 
 // Setting up logger
-const logDir = path.join(process.env.HOME, '.<%= name %>-logs');
+const logDir = path.join(process.env.HOME, '.<%- name %>-logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-SegfaultHandler.registerHandler(path.join(logDir, '<%= name %>-segfault.log'));
+SegfaultHandler.registerHandler(path.join(logDir, '<%- name %>-segfault.log'));
 
 // A console transport logging debug and above.
 log.add(winston.transports.Console, {
@@ -27,21 +27,21 @@ log.add(winston.transports.Console, {
 log.add(winston.transports.File, {
   name: 'error-file',
   level: 'error',
-  filename: path.join(logDir, '<%= name %>-error.log'),
+  filename: path.join(logDir, '<%- name %>-error.log'),
   json: true
 });
 
 log.add(winston.transports.File, {
   name: 'warn-file',
   level: 'warn',
-  filename: path.join(logDir, '<%= name %>-warn.log'),
+  filename: path.join(logDir, '<%- name %>-warn.log'),
   json: true
 });
 
 log.add(winston.transports.File, {
   name: 'debug-file',
   level: 'debug',
-  filename: path.join(logDir, '<%= name %>-debug.log'),
+  filename: path.join(logDir, '<%- name %>-debug.log'),
   json: true
 });
 
@@ -55,7 +55,7 @@ requestLog.add(winston.transports.Console, {
 requestLog.add(winston.transports.File, {
   name: 'request-file',
   level: 'info',
-  filename: path.join(logDir, '<%= name %>-requests.log'),
+  filename: path.join(logDir, '<%- name %>-requests.log'),
   json: true
 });
 

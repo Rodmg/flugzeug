@@ -17,7 +17,7 @@ declare module 'sequelize' {
   export interface Model<TInstance, TAttributes> extends Hooks<TInstance>, Associations {
     sync(options?: SyncOptions): Bluebird<any>;
     schema(schema: string, options?: SchemaOptions): any;
-    scope(options?: string | string[] | ScopeOptions | WhereOptions<any>): any;
+    scope(options?: string | string[] | ScopeOptions | WhereOptions): any;
     unscoped(): any;
 
     getAssociations(): any;

@@ -1,0 +1,29 @@
+# <%- name %>
+
+<%- name %> Server, based on Flugzeug.
+
+## Development
+
+Read the documentation at ``docs/Framework.md``
+
+```
+gulp watch
+```
+
+## Prepare for production
+
+```
+gulp production
+```
+
+## Run in production 
+
+```
+npm start
+```
+
+or
+
+```
+node dist/main.js
+```

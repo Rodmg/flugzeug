@@ -79,6 +79,11 @@ module.exports = class extends Generator {
         useMqtt: this.props.mqtt,
         useWebsockets: this.props.websockets }
     );
+    this.fs.copyTpl(
+      this.templatePath('README.md.template'),
+      this.destinationPath('README.md'),
+      { name: this.props.name }
+    );
 
     this.fs.copyTpl(
       this.templatePath('app/declarations.d.ts.template'),
@@ -106,6 +111,16 @@ module.exports = class extends Generator {
       this.fs.copyTpl(
         this.templatePath('app/config/config.ts.template'),
         this.destinationPath('app/config/config.ts'),
+        { dbname: this.props.dbname, jwt_secret: secret }
+      );
+      this.fs.copyTpl(
+        this.templatePath('.env.template'),
+        this.destinationPath('.env'),
+        { dbname: this.props.dbname, jwt_secret: secret }
+      );
+      this.fs.copyTpl(
+        this.templatePath('.env.example.template'),
+        this.destinationPath('.env.example'),
         { dbname: this.props.dbname, jwt_secret: secret }
       );
     })

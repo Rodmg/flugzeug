@@ -18,7 +18,7 @@ class EmailService {
 	private send(email: string, subject: string, html: string): Promise<any> {
 		return new Promise((resolve, reject) => {
 			this.mailer.sendMail({
-				from: 'MyApp <no-reply@example.com>',
+				from: config.email.from_address,
 				to: email,
 				subject: subject,
 				html: html

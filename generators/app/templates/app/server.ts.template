@@ -45,7 +45,7 @@ routes(app);
 export function setupServer(): Promise<any> {
   return new Promise((resolve, reject) => {
       server.listen(config.server.port, () => {
-          log.info(`<%= name %> started at port ${config.server.port}`);
+          log.info(`<%- name %> started at port ${config.server.port}`);
           resolve();
         });
     });
