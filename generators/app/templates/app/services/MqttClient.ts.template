@@ -119,23 +119,7 @@ class MqttClient extends EventEmitter {
       // Validate first connection
       if(!device.loggedAt) {
         isFirstConnection = true;
-        // Change generic name for new devices
-        if(device.name === 'Nuevo Blastbot' || device.name.length === 0) {
-          if(device.mac != null && device.mac.length === 12)
-            device.name = 'Blastbot ' + device.mac.substr(8);
-          if(device.type === 'blastbot-switch')
-            device.name = `Blastbot Switch ${device.address}`;
-          if(device.type === 'blastbot-plug' && device.mac.length === 12)
-            device.name = 'Blastbot Plug ' + device.mac.substr(8);
-          if(device.type === 'blastbot-hub' && device.mac.length === 12)
-            device.name = 'Blastbot Hub ' + device.mac.substr(8);
-        }
         device.loggedAt = new Date();
-      }
-
-      if(device.type === 'blastbot-switch') {
-        let duration = parseInt(message);
-        if(!isNaN(duration)) device.duration = duration;
       }
 
       device.connected = true;
