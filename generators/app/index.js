@@ -86,11 +86,6 @@ module.exports = class extends Generator {
     );
 
     this.fs.copyTpl(
-      this.templatePath('app/declarations.d.ts.template'),
-      this.destinationPath('app/declarations.d.ts'),
-      { useMqtt: this.props.mqtt }
-    );
-    this.fs.copyTpl(
       this.templatePath('app/main.ts.template'),
       this.destinationPath('app/main.ts'),
       { useMqtt: this.props.mqtt, useWebsockets: this.props.websockets }

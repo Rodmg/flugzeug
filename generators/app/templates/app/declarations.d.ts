@@ -2,10 +2,6 @@ import { Request } from 'express';
 import * as core from 'express-serve-static-core';
 import { Model, Hooks, Associations} from 'sequelize';
 import * as Bluebird from 'bluebird';
-import { EventEmitter } from 'events';
-<% if (useMqtt) { %>
-import * as mqtt from 'mqtt';
-<% } %>
 
 declare module 'express' {
   export interface Request extends core.Request {
@@ -15,23 +11,9 @@ declare module 'express' {
 
 declare module 'sequelize' {
   export interface Model<TInstance, TAttributes> extends Hooks<TInstance>, Associations {
-    sync(options?: SyncOptions): Bluebird<any>;
-    schema(schema: string, options?: SchemaOptions): any;
-    scope(options?: string | string[] | ScopeOptions | WhereOptions): any;
-    unscoped(): any;
-
     getAssociations(): any;
   }
 }
-
-<% if (useMqtt) { %>
-declare module 'mqtt' {
-  export interface Client extends EventEmitter {
-    connected: boolean;
-    options: mqtt.ClientOptions;
-  }
-}
-<% } %>
 
 declare module 'nodemailer' {
   export interface SendMailOptions {

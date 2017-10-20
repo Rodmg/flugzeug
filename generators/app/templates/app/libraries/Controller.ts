@@ -8,7 +8,7 @@ import { SocketRouter, SocketRequest, SocketResponse } from './../libraries/Sock
 
 export class Controller {
 
-  protected model: Model<any, any>;
+  protected model: Model<any, any> | any;
   public name: string; // Name used for the route, all lowercase
   protected router: Router;
   protected socketRouter: SocketRouter;

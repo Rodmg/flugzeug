@@ -107,7 +107,7 @@ export class AuthController extends Controller {
     return Promise.resolve(User.findOne({ where: { email: email }, include: [ { model: Profile, as: 'profile' } ] })
       .then((user) => {
         if(!user) {
-          throw { err: 'notFound', msg: 'Email not found' };
+          throw { error: 'notFound', msg: 'Email not found' };
         }
         // Create reset token
         let token = this.createToken(user, 'reset');
@@ -115,9 +115,6 @@ export class AuthController extends Controller {
       })
       .then((emailInfo) => {
         return this.sendEmailNewPassword(emailInfo.user, emailInfo.token, emailInfo.name);
-      })
-      .catch((err) => {
-        throw ({err: 'serverError', msg: err});
       }));
   }
 
@@ -327,7 +324,13 @@ export class AuthController extends Controller {
         });
       })
       .catch((err) => {
-        if(err) return Controller.serverError(res, err);
+        if( err.errors != null && 
+            err.errors.length && 
+            err.errors[0].type === 'unique violation' &&
+            err.errors[0].path === 'email') {
+          return Controller.forbidden(res, 'email in use');
+        }
+        else if(err) return Controller.serverError(res, err);
       });
 
   }
