@@ -52,8 +52,7 @@ export const config: any = {
     limit: 99,
     offset: 0,
     // Show detailed error responses or not
-    debug: true,
-    useSocketRest: false
+    debug: true
   },
 
   log: {
@@ -74,13 +73,11 @@ export const config: any = {
     name: process.env.DB_NAME || '<%- dbname %>',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    options: {
-      host: 'localhost',
-      dialect: 'mysql',
-      //storage: 'db.sqlite'
-      logging: false,
-      timezone: 'utc' // IMPORTANT For correct timezone management with DB, Tasks etc.
-    }
+    host: 'localhost',
+    dialect: 'mysql',
+    logging: false,
+    //storage: 'db.sqlite',
+    timezone: 'utc' // IMPORTANT For correct timezone management with DB, Tasks etc.
   },
 
   mqtt: {

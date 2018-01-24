@@ -406,10 +406,10 @@ export class AuthController extends Controller {
       user: null
     };
 
-    User.findOne({ where: { id: req.session.jwt.id }, include: [ { model: Profile, as: 'profile' } ] })
-      .then((user) => {
+    User.findOne<User>({ where: { id: req.session.jwt.id }, include: [ { model: Profile, as: 'profile' } ] })
+      .then((user: User) => {
         if(!user) {
-          return Controller.unauthorized(res);
+          return false;
         }
         results.user = user;
         return user.authenticate(oldPass);

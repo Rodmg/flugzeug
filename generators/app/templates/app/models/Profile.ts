@@ -1,21 +1,30 @@
 
-import * as DataTypes from 'sequelize';
-import { db } from './../db';
+import { Table, Column, DataType, BelongsTo, Model, ForeignKey } from 'sequelize-typescript';
+import { User } from './User';
 
-export const Profile = db.define('profile', {
-  id: {
-    type: DataTypes.INTEGER(10).UNSIGNED,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  time_zone: {
-    type: DataTypes.STRING,
+@Table({
+  tableName: 'profile'
+})
+export class Profile extends Model<Profile> {
+
+  @Column({
+    type: DataType.STRING,
     allowNull: true,
-    defaultValue: null,
-  },
-  locale: {
-    type: DataTypes.ENUM('en', 'es'),
+    defaultValue: null
+  })
+  time_zone: string;
+
+  @Column({
+    type: DataType.ENUM('en', 'es'),
     allowNull: true
-  }
-});
+  })
+  locale: 'en' | 'es';
+
+  @ForeignKey(() => User)
+  @Column
+  userId: number;
+
+  @BelongsTo(() => User)
+  user: User;
+
+}

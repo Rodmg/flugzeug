@@ -9,12 +9,6 @@ declare module 'express' {
   }
 }
 
-declare module 'sequelize' {
-  export interface Model<TInstance, TAttributes> extends Hooks<TInstance>, Associations {
-    getAssociations(): any;
-  }
-}
-
 declare module 'nodemailer' {
   export interface SendMailOptions {
     template? : string;

@@ -8,15 +8,11 @@
     "removeComments": true,
     "sourceMap": true,
     "rootDir": "app",
-    "outDir": "dist"
+    "outDir": "dist",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": [
-    "app/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "files": [
-    "typings/*.d.ts"
-  ]
+  "include": ["app/**/*.ts"],
+  "exclude": ["node_modules"],
+  "files": ["typings/*.d.ts"]
 }

@@ -4,8 +4,15 @@ const chalk = require('chalk');
 const yosay = require('yosay');
 const base64url = require('base64-url');
 const crypto = require('crypto');
+const _ = require('lodash');
 
 module.exports = class extends Generator {
+
+  makeName(name) {
+    name = _.kebabCase(name);
+    return name;
+  }
+
   prompting() {
     // Have Yeoman greet the user.
     this.log(yosay(
@@ -16,7 +23,8 @@ module.exports = class extends Generator {
       type: 'input',
       name: 'name',
       message: 'Your project name',
-      default: this.appname
+      default: this.makeName(this.appname),
+      filter: this.makeName
     }, {
       type: 'input',
       name: 'author',
@@ -95,7 +103,7 @@ module.exports = class extends Generator {
       this.destinationPath('app/server.ts'),
       { name: this.props.name }
     );
-    if(this.props.useWebsockets) this.fs.copyTpl(
+    if(this.props.websockets) this.fs.copyTpl(
       this.templatePath('app/sockets.ts.template'),
       this.destinationPath('app/sockets.ts'),
       {}

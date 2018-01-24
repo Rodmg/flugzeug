@@ -1,32 +1,32 @@
 
-import { Model } from 'sequelize';
+import { Model } from 'sequelize-typescript';
 import { Request, Response, Router } from 'express';
 import { log } from './Log';
+import { db } from './../db';
 import { config } from './../config/config';
 import * as _ from 'lodash';
-import { SocketRouter, SocketRequest, SocketResponse } from './../libraries/SocketRest';
 
 export class Controller {
 
-  protected model: Model<any, any> | any;
+  protected model: typeof Model | any;
   public name: string; // Name used for the route, all lowercase
   protected router: Router;
-  protected socketRouter: SocketRouter;
 
   constructor() {
     this.router = Router();
-    this.socketRouter = new SocketRouter();
     // Initialize req.session
     this.router.use(function(req: Request, res: Response, next) {
       if(req.session == null) req.session = {};
       next();
     });
+
   }
 
   routes(): Router {
     // Example routes
     // WARNING: Routes without policies
     // You should add policies before your method
+    log.warn('You should add policies before your method');
     this.router.get('/', (req, res) => this.find(req, res));
     this.router.get('/:id', (req, res) => this.findOne(req, res));
     this.router.post('/', (req, res) => this.create(req, res));
@@ -34,10 +34,6 @@ export class Controller {
     this.router.delete('/:id', (req, res) => this.destroy(req, res));
 
     return this.router;
-  }
-
-  socketRoutes(): SocketRouter {
-    return this.socketRouter;
   }
 
   // Sails query format retrocompatibility
@@ -181,30 +177,44 @@ export class Controller {
 
   protected parseInclude(req: Request): Array<any> {
     let include: Array<any> = [];
-    let populate: string | Array<string> = req.query.include || req.query.populate;
+    let populate: any = req.query.include || req.query.populate;
 
-    // Convert the string representation of the filter list to an Array. We
-    // need this to provide flexibility in the request param. This way both
-    // list string representations are supported:
-    //   /model?populate=alias1,alias2,alias3
-    //   /model?populate=[alias1,alias2,alias3]
-    if (typeof populate === 'string') {
-      populate = populate.replace(/\[|\]/g, '');
-      populate = (populate) ? populate.split(',') : [];
+    if(_.isString(populate)) {
+      include = JSON.parse(populate);
     }
-    else return include;
 
-    // Assign items to strings
-    if(this.model.getAssociations == null) return include;
-    let associations = this.model.getAssociations();
-    for(let name of populate) {
-      if(associations[name] != null) {
-        let item = _.pick(associations[name], ['model', 'as', 'include']);
-        include.push(item);
+    const tryWithFilter = (m: string) => {
+      if (m.includes('.')) {
+          let splt = m.split('.'), modelName = splt[0], filterName = splt[1], filter = {};
+
+          const model = this.getModelFromList(modelName);
+
+          //return {model: model, where: where, required: false};
+          if(model['filter'] != null ) {
+            return model['filter'](filterName);
+          } 
+
+        } 
+          
+        return {model: this.getModelFromList(m), required: false };
+        
+    }
+
+    const parseIncludeRecursive = (item) => {
+      if(_.isString(item)) {
+        return tryWithFilter(item);
+      } else {
+        let model: string = Object.keys(item)[0];
+        let content = item[model];
+
+        let result: any = tryWithFilter(model);
+        result.include = content.map((i) => parseIncludeRecursive(i));
+            
+        return result;
       }
     }
 
-    return include;
+    return include.map((item) => parseIncludeRecursive(item));
   }
 
   public static ok(res: Response, data?: any) {
@@ -313,6 +323,8 @@ export class Controller {
       });
   }
 
+
+
   findOne(req: Request, res: Response) {
     // For applying constraints (usefull with policies)
     let where = this.parseWhere(req);
@@ -362,5 +374,16 @@ export class Controller {
       if(err) Controller.serverError(res, err);
     });
   }
+
+  getModel() {
+    return this.model;
+  }
+
+
+  getModelFromList(modelName) {
+    return db.models[modelName];
+  }
+
+
 
 }

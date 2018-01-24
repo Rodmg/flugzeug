@@ -15,9 +15,6 @@ import EventService from './services/EventService';
 
 process.env.TZ = 'UTC'; // IMPORTANT For correct timezone management with DB, Tasks etc.
 
-// Debug, not necessary on production TODO remove
-const importedModels = require('require-dir-all')('models');
-
 setupDB()
   .then(() => {
     <% if (useMqtt) { %>

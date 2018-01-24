@@ -4,15 +4,12 @@ import * as _ from 'lodash';
 import { server } from './server';
 import { default as auth } from './controllers/v1/Auth';
 import { Request, Response } from 'express-serve-static-core';
-import { SocketRest, SocketRouter } from './libraries/SocketRest';
 import { db } from './db';
 import EventService from './services/EventService';
 import { log } from './libraries/Log';
 
 // Initialize websockets
 export const io = Socketio();
-
-export const socketRest = new SocketRest();
 
 export function setupSockets(): Promise<any> {
 
@@ -47,11 +44,6 @@ export function setupSockets(): Promise<any> {
   io.on('connection', (socket) => {
 
     log.info("Websocket connected, client:", socket.handshake.address, socket.request.session.user.email);
-
-    // Support for REST over websockets
-    socket.on('request', (data) => {
-      socketRest.handleRequest(socket, data);
-    });
 
     // Support for db change events
     let userId = socket.request.session.user.id;
