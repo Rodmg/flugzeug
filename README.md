@@ -7,21 +7,20 @@ First, install [Yeoman](http://yeoman.io) and generator-flug using [npm](https:/
 
 ```bash
 npm install -g yo
-npm install -g generator-flug
+git clone git@gitlab.com:makerlabmx/generator-flug.git
+cd generator-flug
+npm install
+npm link
+cd
 ```
 
 Then generate your new project:
 
 ```bash
+mkdir my-project
+cd my-project
 yo flug
 ```
-
-## Getting To Know Yeoman
-
- * Yeoman has a heart of gold.
- * Yeoman is a person with feelings and opinions, but is very easy to work with.
- * Yeoman can be too opinionated at times but is easily convinced not to be.
- * Feel free to [learn more about Yeoman](http://yeoman.io/).
 
 ## License
 
