@@ -6,7 +6,6 @@ var sourcemaps = require('gulp-sourcemaps');
 var path = require('path');
 var spawn = require('child_process').spawn;
 var runSequence = require('run-sequence');
-var flatten = require('gulp-flatten');
 var shell = require('gulp-shell');
 
 // Node process

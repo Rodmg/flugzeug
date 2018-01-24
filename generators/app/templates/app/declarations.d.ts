@@ -9,13 +9,6 @@ declare module 'express' {
   }
 }
 
-declare module 'nodemailer' {
-  export interface SendMailOptions {
-    template? : string;
-    context?: any;
-  }
-}
-
 declare module 'i18n' {
   export function init(request: any, response?: any, next?: Function): void;
 }

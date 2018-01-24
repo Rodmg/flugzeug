@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const _ = require('lodash');
 
 module.exports = class extends Generator {
-
   makeName(name) {
     name = _.kebabCase(name);
     return name;
@@ -15,37 +14,41 @@ module.exports = class extends Generator {
 
   prompting() {
     // Have Yeoman greet the user.
-    this.log(yosay(
-      'Welcome to the ' + chalk.red('Flugzeug') + ' generator.'
-    ));
+    this.log(yosay('Welcome to the ' + chalk.red('Flugzeug') + ' generator.'));
 
-    const prompts = [{
-      type: 'input',
-      name: 'name',
-      message: 'Your project name',
-      default: this.makeName(this.appname),
-      filter: this.makeName
-    }, {
-      type: 'input',
-      name: 'author',
-      message: 'Author:',
-      default: 'Me <me@example.com>'
-    }, {
-      type: 'input',
-      name: 'dbname',
-      message: 'MySQL Database name:',
-      default: 'flugzeug-project'
-    }, {
-      type: 'confirm',
-      name: 'websockets',
-      message: 'Use websockets?',
-      default: false
-    }, {
-      type: 'confirm',
-      name: 'mqtt',
-      message: 'Use MQTT?',
-      default: false
-    }];
+    const prompts = [
+      {
+        type: 'input',
+        name: 'name',
+        message: 'Your project name',
+        default: this.makeName(this.appname),
+        filter: this.makeName
+      },
+      {
+        type: 'input',
+        name: 'author',
+        message: 'Author:',
+        default: 'Me <me@example.com>'
+      },
+      {
+        type: 'input',
+        name: 'dbname',
+        message: 'MySQL Database name:',
+        default: 'flugzeug-project'
+      },
+      {
+        type: 'confirm',
+        name: 'websockets',
+        message: 'Use websockets?',
+        default: false
+      },
+      {
+        type: 'confirm',
+        name: 'mqtt',
+        message: 'Use MQTT?',
+        default: false
+      }
+    ];
 
     return this.prompt(prompts).then(props => {
       // To access props later use this.props.someAnswer;
@@ -57,7 +60,7 @@ module.exports = class extends Generator {
   _generateJwtSecret() {
     return new Promise((resolve, reject) => {
       crypto.randomBytes(32, (err, buf) => {
-        if(err) return reject(err);
+        if (err) return reject(err);
         this.token = base64url.encode(buf);
         return resolve(this.token);
       });
@@ -65,27 +68,24 @@ module.exports = class extends Generator {
   }
 
   writing() {
-
     // Copy all non-template files
-    this.fs.copy(
-      this.templatePath(''),
-      this.destinationPath(''),
-      {
-        globOptions: {
-          dot: true,
-          ignore: '**/*.template'
-        }
+    this.fs.copy(this.templatePath(''), this.destinationPath(''), {
+      globOptions: {
+        dot: true,
+        ignore: '**/*.template'
       }
-    );
+    });
 
     // Copy templates
     this.fs.copyTpl(
       this.templatePath('package.json.template'),
       this.destinationPath('package.json'),
-      { name: this.props.name,
+      {
+        name: this.props.name,
         author: this.props.author,
         useMqtt: this.props.mqtt,
-        useWebsockets: this.props.websockets }
+        useWebsockets: this.props.websockets
+      }
     );
     this.fs.copyTpl(
       this.templatePath('README.md.template'),
@@ -103,33 +103,34 @@ module.exports = class extends Generator {
       this.destinationPath('app/server.ts'),
       { name: this.props.name }
     );
-    if(this.props.websockets) this.fs.copyTpl(
-      this.templatePath('app/sockets.ts.template'),
-      this.destinationPath('app/sockets.ts'),
-      {}
-    );
+    if (this.props.websockets)
+      this.fs.copyTpl(
+        this.templatePath('app/sockets.ts.template'),
+        this.destinationPath('app/sockets.ts'),
+        {}
+      );
 
     this._generateJwtSecret()
-    .then((secret) => {
-      this.fs.copyTpl(
-        this.templatePath('app/config/config.ts.template'),
-        this.destinationPath('app/config/config.ts'),
-        { dbname: this.props.dbname, jwt_secret: secret }
-      );
-      this.fs.copyTpl(
-        this.templatePath('.env.template'),
-        this.destinationPath('.env'),
-        { dbname: this.props.dbname, jwt_secret: secret }
-      );
-      this.fs.copyTpl(
-        this.templatePath('.env.example.template'),
-        this.destinationPath('.env.example'),
-        { dbname: this.props.dbname, jwt_secret: secret }
-      );
-    })
-    .catch(err => {
-      this.log("Error generating JWT secret", err);
-    });
+      .then(secret => {
+        this.fs.copyTpl(
+          this.templatePath('app/config/config.ts.template'),
+          this.destinationPath('app/config/config.ts'),
+          { dbname: this.props.dbname, jwt_secret: secret }
+        );
+        this.fs.copyTpl(
+          this.templatePath('.env.template'),
+          this.destinationPath('.env'),
+          { dbname: this.props.dbname, jwt_secret: secret }
+        );
+        this.fs.copyTpl(
+          this.templatePath('.env.example.template'),
+          this.destinationPath('.env.example'),
+          { dbname: this.props.dbname, jwt_secret: secret }
+        );
+      })
+      .catch(err => {
+        this.log('Error generating JWT secret', err);
+      });
 
     this.fs.copyTpl(
       this.templatePath('app/libraries/Log.ts.template'),
@@ -137,13 +138,12 @@ module.exports = class extends Generator {
       { name: this.props.name }
     );
 
-    if(this.useMqtt) this.fs.copyTpl(
-      this.templatePath('app/services/MqttClient.ts.template'),
-      this.destinationPath('app/services/MqttClient.ts'),
-      {}
-    );
-
-
+    if (this.useMqtt)
+      this.fs.copyTpl(
+        this.templatePath('app/services/MqttClient.ts.template'),
+        this.destinationPath('app/services/MqttClient.ts'),
+        {}
+      );
   }
 
   install() {
