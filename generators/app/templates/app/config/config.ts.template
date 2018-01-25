@@ -70,8 +70,8 @@ export const config: any = {
   },
 
   db: {
-    name: process.env.DB_NAME || '<%- dbname %>',
-    user: process.env.DB_USER || 'root',
+    database: process.env.DB_NAME || 'flugzeug-project',
+    username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     host: 'localhost',
     dialect: 'mysql',

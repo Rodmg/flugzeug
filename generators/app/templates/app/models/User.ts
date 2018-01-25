@@ -60,9 +60,11 @@ export class User extends Model<User> {
   })
   role: 'user' | 'admin';
 
-  @HasOne(() => Profile, 'userId')
+  @HasOne(() => Profile, {
+    hooks: true,
+    onDelete: 'CASCADE'
+  })
   profile: Profile;
-  // TODO: What happens on delete (was cascade before)
 
   @BeforeBulkCreate
   @BeforeBulkUpdate

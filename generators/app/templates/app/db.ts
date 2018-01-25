@@ -1,22 +1,15 @@
 
 import { Sequelize, ISequelizeConfig } from 'sequelize-typescript';
 import { log } from './libraries/Log';
-import * as _ from 'lodash';
 import { config } from './config/config';
 import * as path from 'path';
 
 const dbOptions: ISequelizeConfig = {
-  database: config.db.name,
-  username: config.db.user,
-  password: config.db.password,
-  host: config.db.host,
-  dialect: config.db.dialect,
-  logging: config.db.logging,
-  storage: config.db.storage,
-  timezone: config.db.timezone,
+  ...config.db,
   modelPaths: [path.join(__dirname, '/models')],
   define: {
-    freezeTableName: true
+    freezeTableName: true,
+    timestamps: true
   },
   operatorsAliases: {
     $eq: Sequelize.Op.eq,
@@ -56,7 +49,6 @@ const dbOptions: ISequelizeConfig = {
   }
 };
 
-// dbOptions = _.merge(dbOptions, config.db.options);
 export const db = new Sequelize(dbOptions);
 
 // Should be called in server
