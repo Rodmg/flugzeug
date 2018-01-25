@@ -1,13 +1,17 @@
 'use strict';
 const Generator = require('yeoman-generator');
 const chalk = require('chalk');
-const yosay = require('yosay');
 const base64url = require('base64-url');
 const crypto = require('crypto');
 const _ = require('lodash');
 
-const logo =
-  '                                 \r\n _____ _                         \r\n|   __| |_ _ ___ ___ ___ _ _ ___ \r\n|   __| | | | . |- _| -_| | | . |\r\n|__|  |_|___|_  |___|___|___|_  |\r\n            |___|           |___|';
+const logo = `                                 
+  _____ _                         
+ |   __| |_ _ ___ ___ ___ _ _ ___ 
+ |   __| | | | . |- _| -_| | | . |
+ |__|  |_|___|_  |___|___|___|_  |
+             |___|           |___|
+`;
 
 module.exports = class extends Generator {
   makeName(name) {
@@ -17,7 +21,7 @@ module.exports = class extends Generator {
 
   prompting() {
     // Have Yeoman greet the user.
-    this.log(logo + '\n\nWelcome to the ' + chalk.red('Flugzeug') + ' generator\n');
+    this.log(logo + '\nWelcome to the ' + chalk.red('Flugzeug') + ' generator\n');
 
     const prompts = [
       {
