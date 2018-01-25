@@ -14,7 +14,7 @@ const logo = `
 `;
 
 module.exports = class extends Generator {
-  makeName(name) {
+  _makeName(name) {
     name = _.kebabCase(name);
     return name;
   }
@@ -28,14 +28,15 @@ module.exports = class extends Generator {
         type: 'input',
         name: 'name',
         message: 'Your project name',
-        default: this.makeName(this.appname),
-        filter: this.makeName
+        default: this._makeName(this.appname),
+        filter: this._makeName
       },
       {
         type: 'input',
         name: 'author',
         message: 'Author:',
-        default: 'Me <me@example.com>'
+        default: 'Me <me@example.com>',
+        store: true
       },
       {
         type: 'input',
