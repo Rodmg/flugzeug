@@ -58,7 +58,6 @@ module.exports = class extends Generator {
     ];
 
     return this.prompt(prompts).then(props => {
-      this.log(props);
       this.props = props;
     });
   }
