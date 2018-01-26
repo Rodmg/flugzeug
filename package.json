@@ -8,17 +8,9 @@
     "email": "rmendez@makerlab.mx",
     "url": "http://rodrigomendez.me"
   },
-  "files": [
-    "generators"
-  ],
+  "files": ["generators"],
   "main": "generators/index.js",
-  "keywords": [
-    "sequelize",
-    "typescript",
-    "gulp",
-    "mysql",
-    "yeoman-generator"
-  ],
+  "keywords": ["sequelize", "typescript", "gulp", "mysql", "yeoman-generator"],
   "devDependencies": {
     "yeoman-test": "^1.6.0",
     "yeoman-assert": "^3.0.0",
@@ -36,6 +28,7 @@
   "dependencies": {
     "base64-url": "^2.0.0",
     "chalk": "^1.1.3",
+    "change-case": "^3.0.1",
     "yeoman-generator": "^1.0.0",
     "yosay": "^2.0.0"
   },
@@ -49,20 +42,11 @@
     "test": "jest"
   },
   "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ],
-    "*.json": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.js": ["eslint --fix", "git add"],
+    "*.json": ["prettier --write", "git add"]
   },
   "eslintConfig": {
-    "extends": [
-      "xo",
-      "prettier"
-    ],
+    "extends": ["xo", "prettier"],
     "env": {
       "jest": true,
       "node": true
@@ -76,9 +60,7 @@
         }
       ]
     },
-    "plugins": [
-      "prettier"
-    ]
+    "plugins": ["prettier"]
   },
   "repository": "Rodmg/generator-flug",
   "license": "MIT"

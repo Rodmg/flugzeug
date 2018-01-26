@@ -1,4 +1,4 @@
-# generator-flug [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+# generator-flug
 > Flugzeug Generator
 
 ## Installation
@@ -22,14 +22,17 @@ cd my-project
 yo flug
 ```
 
+## Available generators
+
+Run any inside your project folder:
+
+```
+yo flug:api
+yo flug:model
+yo flug:controller
+yo flug:service
+```
+
 ## License
 
 MIT © [Rodrigo Méndez Gamboa](http://rodrigomendez.me)
-
-
-[npm-image]: https://badge.fury.io/js/generator-flug.svg
-[npm-url]: https://npmjs.org/package/generator-flug
-[travis-image]: https://travis-ci.org/Rodmg/generator-flug.svg?branch=master
-[travis-url]: https://travis-ci.org/Rodmg/generator-flug
-[daviddm-image]: https://david-dm.org/Rodmg/generator-flug.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/Rodmg/generator-flug

@@ -4,7 +4,6 @@ import { User } from './../../models/User';
 import { Request, Response, Router } from 'express';
 import { validateJWT, isSelfUser, filterRoles } from './../../policies/General';
 
-
 export class UserController extends Controller {
 
   constructor() {

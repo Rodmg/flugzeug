@@ -20,7 +20,6 @@ module.exports = class extends Generator {
   }
 
   prompting() {
-    // Have Yeoman greet the user.
     this.log(logo + '\nWelcome to the ' + chalk.red('Flugzeug') + ' generator\n');
 
     const prompts = [
@@ -59,7 +58,6 @@ module.exports = class extends Generator {
     ];
 
     return this.prompt(prompts).then(props => {
-      // To access props later use this.props.someAnswer;
       this.log(props);
       this.props = props;
     });
