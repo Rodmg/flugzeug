@@ -25,10 +25,6 @@ class EventService extends EventEmitter {
         }
       }
 
-      // Special case for device: if only changed lastSeen, dont emit event
-      // Otherwise this event would be emitted every 10 seconds, and is not necesary
-      if(Object.keys(changes).length === 1 && changes.hasOwnProperty('lastSeen')) return;
-
       if(instance.userId) {
         this.emit(`db/update/${instance.userId}`, { model: instance.$modelOptions.name.singular, id: instance.id, changed: changes });
         this.emit(`db/change/${instance.userId}`, { event: 'update', model: instance.$modelOptions.name.singular, id: instance.id, changed: changes });

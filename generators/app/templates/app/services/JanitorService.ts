@@ -3,9 +3,6 @@
     Manages periodical cleanup of DB according to business rules
 
   Business logic:
-    Delete templog older than 30 days each 24h
-    Delete userlog older than 30 days each 24h
-    Cleanup never connected devices after 24h
     Cleanup expired blacklisted tokens each 24h
 */
 
