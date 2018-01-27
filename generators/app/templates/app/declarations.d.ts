@@ -1,7 +1,5 @@
 import { Request } from 'express';
 import * as core from 'express-serve-static-core';
-import { Model, Hooks, Associations} from 'sequelize';
-import * as Bluebird from 'bluebird';
 
 declare module 'express' {
   export interface Request extends core.Request {

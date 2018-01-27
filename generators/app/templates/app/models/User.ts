@@ -4,7 +4,6 @@ import {
   Column,
   HasOne,
   DataType,
-  Model,
   BelongsTo,
   BeforeBulkCreate,
   BeforeCreate,
@@ -15,7 +14,7 @@ import {
   BeforeDelete,
   HasMany
 } from 'sequelize-typescript';
-
+import { BaseModel } from '../libraries/BaseModel';
 import { Profile } from './Profile';
 import * as bcrypt from 'bcrypt';
 import * as _ from 'lodash';
@@ -23,7 +22,7 @@ import * as _ from 'lodash';
 @Table({
   tableName: 'user'
 })
-export class User extends Model<User> {
+export class User extends BaseModel<User> {
 
   @Column({
     type: DataType.STRING,

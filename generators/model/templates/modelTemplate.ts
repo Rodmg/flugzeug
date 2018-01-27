@@ -1,11 +1,12 @@
 
-import { Table, Column, DataType, BelongsTo, Model, ForeignKey } from 'sequelize-typescript';
+import { Table, Column, DataType, BelongsTo, ForeignKey } from 'sequelize-typescript';
+import { BaseModel } from '../libraries/BaseModel';
 <% if (belongsToUser) { %>import { User } from './User';<% } %>
 
 @Table({
   tableName: '<%- tableName %>'
 })
-export class <%- modelName %> extends Model<<%- modelName %>> {
+export class <%- modelName %> extends BaseModel<<%- modelName %>> {
 
   @Column({
     type: DataType.STRING,

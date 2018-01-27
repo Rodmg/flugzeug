@@ -1,11 +1,12 @@
 
-import { Table, Column, DataType, BelongsTo, Model, ForeignKey } from 'sequelize-typescript';
+import { Table, Column, DataType, BelongsTo, ForeignKey } from 'sequelize-typescript';
+import { BaseModel } from '../libraries/BaseModel';
 import { User } from './User';
 
 @Table({
   tableName: 'profile'
 })
-export class Profile extends Model<Profile> {
+export class Profile extends BaseModel<Profile> {
 
   @Column({
     type: DataType.STRING,
