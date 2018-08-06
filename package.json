@@ -52,10 +52,10 @@
       "node": true
     },
     "rules": {
+      "camelcase": 0,
       "prettier/prettier": [
         "error",
         {
-          "singleQuote": true,
           "printWidth": 90
         }
       ]

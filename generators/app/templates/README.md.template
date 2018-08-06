@@ -27,3 +27,15 @@ or
 ```
 node dist/main.js
 ```
+
+## Seed database (see app/seed.ts)
+
+```
+gulp seed
+```
+
+## Print database creation SQL (Useful when writing migrations)
+
+```
+gulp sql
+```

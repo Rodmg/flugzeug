@@ -1,12 +1,11 @@
-
-import { Sequelize, ISequelizeConfig } from 'sequelize-typescript';
-import { log } from './libraries/Log';
-import { config } from './config/config';
-import * as path from 'path';
+import { Sequelize, ISequelizeConfig } from "sequelize-typescript";
+import { log } from "./libraries/Log";
+import { config } from "./config/config";
+import * as path from "path";
 
 const dbOptions: ISequelizeConfig = {
   ...config.db,
-  modelPaths: [path.join(__dirname, '/models')],
+  modelPaths: [path.join(__dirname, "/models")],
   define: {
     freezeTableName: true,
     timestamps: true
@@ -53,6 +52,18 @@ export const db = new Sequelize(dbOptions);
 
 // Should be called in server
 export function setupDB(): Promise<any> {
-  // Uncomment parameter for logging CREATE TABLE queries
-  return Promise.resolve(db.sync(/*{ logging: console.log }*/));
+  return Promise.resolve(db.sync());
+}
+
+export function printDBCreateSQL(): Promise<any> {
+  return Promise.resolve(
+    db.sync({
+      logging: data => {
+        // Clean output
+        data = data.replace("Executing (default): ", "");
+        if (data.indexOf("SHOW INDEX FROM") != -1) return;
+        console.log(data);
+      }
+    })
+  );
 }

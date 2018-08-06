@@ -5,7 +5,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -90,3 +91,5 @@ node_modules
 .env
 dist
 public/*
+!public/favicon.ico
+!public/apidoc
