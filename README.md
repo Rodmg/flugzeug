@@ -18,9 +18,7 @@ cd
 Then generate your new project:
 
 ```bash
-mkdir my-project
-cd my-project
-yo flug
+yo flug my-project
 ```
 
 ## Available generators

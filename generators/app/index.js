@@ -1,8 +1,11 @@
 "use strict";
 const Generator = require("yeoman-generator");
 const chalk = require("chalk");
+const boxen = require("boxen");
 const base64url = require("base64-url");
 const crypto = require("crypto");
+const path = require("path");
+const mkdirp = require("mkdirp");
 const _ = require("lodash");
 
 const logo = `                                 
@@ -14,6 +17,18 @@ const logo = `
 `;
 
 module.exports = class extends Generator {
+  constructor(args, opts) {
+    super(args, opts);
+
+    this.createdFolder = false;
+
+    this.argument("name", {
+      type: String,
+      required: false,
+      dscription: "Your project name"
+    });
+  }
+
   _makeName(name) {
     name = _.kebabCase(name);
     return name;
@@ -21,6 +36,10 @@ module.exports = class extends Generator {
 
   prompting() {
     this.log(logo + "\nWelcome to the " + chalk.red("Flugzeug") + " generator\n");
+
+    if (this.options.name != null) {
+      this.appname = this.options.name;
+    }
 
     const prompts = [
       {
@@ -54,6 +73,19 @@ module.exports = class extends Generator {
     return this.prompt(prompts).then(props => {
       this.props = props;
     });
+  }
+
+  default() {
+    if (path.basename(this.destinationPath()) !== this.props.name) {
+      this.log(
+        `Your project must be inside a folder named ${
+          this.props.name
+        }\nI'll automatically create this folder.`
+      );
+      mkdirp(this.props.name);
+      this.destinationRoot(this.destinationPath(this.props.name));
+      this.createdFolder = true;
+    }
   }
 
   _generateJwtSecret() {
@@ -148,5 +180,15 @@ module.exports = class extends Generator {
       bower: false,
       yarn: false
     });
+  }
+
+  end() {
+    const content = `${chalk.green("Your project is ready!")}
+For instructions on how to get started, please see README.md
+Run it with:
+${this.createdFolder ? "\n  " + chalk.blue("cd ") + chalk.blue(this.props.name) : ""}
+  ${chalk.blue("gulp watch")}`;
+    const msg = boxen(content, { padding: 1, borderStyle: "round" });
+    this.log(msg);
   }
 };
