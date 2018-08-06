@@ -1,13 +1,11 @@
-
-import { Table, Column, DataType, BelongsTo, ForeignKey } from 'sequelize-typescript';
-import { BaseModel } from '../libraries/BaseModel';
-import { User } from './User';
+import { Table, Column, DataType, BelongsTo, ForeignKey } from "sequelize-typescript";
+import { BaseModel } from "../libraries/BaseModel";
+import { User } from "./User";
 
 @Table({
-  tableName: 'profile'
+  tableName: "profile"
 })
 export class Profile extends BaseModel<Profile> {
-
   @Column({
     type: DataType.STRING,
     allowNull: true,
@@ -16,10 +14,10 @@ export class Profile extends BaseModel<Profile> {
   time_zone: string;
 
   @Column({
-    type: DataType.ENUM('en', 'es'),
+    type: DataType.ENUM("en", "es"),
     allowNull: true
   })
-  locale: 'en' | 'es';
+  locale: "en" | "es";
 
   @ForeignKey(() => User)
   @Column
@@ -27,5 +25,4 @@ export class Profile extends BaseModel<Profile> {
 
   @BelongsTo(() => User)
   user: User;
-
 }

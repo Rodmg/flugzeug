@@ -1,64 +1,70 @@
-
-import * as Socketio from 'socket.io';
-import * as _ from 'lodash';
-import { server } from './server';
-import { default as auth } from './controllers/v1/Auth';
-import { Request, Response } from 'express-serve-static-core';
-import { db } from './db';
-import EventService from './services/EventService';
-import { log } from './libraries/Log';
+import * as Socketio from "socket.io";
+import * as _ from "lodash";
+import { server } from "./server";
+import { default as auth } from "./controllers/v1/Auth";
+import { Request, Response } from "express-serve-static-core";
+import { db } from "./db";
+import EventService from "./services/EventService";
+import { log } from "./libraries/Log";
 
 // Initialize websockets
 export const io = Socketio();
 
 export function setupSockets(): Promise<any> {
-
   // Attach websocket server to main server
   io.attach(server);
 
   // Auth middleware for sockets
   io.use((socket, next) => {
-
     let token = socket.handshake.query.token;
 
     // Validate access JWT for auth
-    if(token == null) return next(new Error('No Token Present'));
+    if (token == null) return next(new Error("No Token Present"));
 
-    auth.validateJWT(token, 'access')
-      .then((decoded) => {
-        if(!decoded) {
-          throw new Error('Invalid Token');
+    auth
+      .validateJWT(token, "access")
+      .then(decoded => {
+        if (!decoded) {
+          throw new Error("Invalid Token");
         }
-        if(socket.request.session == null) socket.request.session = {};
+        if (socket.request.session == null) socket.request.session = {};
         socket.request.session.jwt = decoded;
         socket.request.session.jwtstring = token;
-        socket.request.session.user = _.pick(decoded, ['id', 'email', 'role']);
+        socket.request.session.user = _.pick(decoded, ["id", "email", "role"]);
         return next();
       })
-      .catch((err) => {
+      .catch(err => {
         return next(new Error(err));
       });
   });
 
   // Socket connection handler and setup
-  io.on('connection', (socket) => {
-
-    log.info("Websocket connected, client:", socket.handshake.address, socket.request.session.user.email);
+  io.on("connection", socket => {
+    log.info(
+      "Websocket connected, client:",
+      socket.handshake.address,
+      socket.request.session.user.email
+    );
 
     // Support for db change events
     let userId = socket.request.session.user.id;
 
-    let dbChangeHandler = (data) => {
-      socket.emit('change', data);
+    let dbChangeHandler = data => {
+      socket.emit("change", data);
     };
 
     EventService.on(`db/change/${userId}`, dbChangeHandler);
 
-    socket.on('disconnect', (reason) => {
-      log.info("Websocket disconnected, client:", socket.handshake.address, socket.request.session.user.email, "reason:", reason);
+    socket.on("disconnect", reason => {
+      log.info(
+        "Websocket disconnected, client:",
+        socket.handshake.address,
+        socket.request.session.user.email,
+        "reason:",
+        reason
+      );
       EventService.removeListener(`db/update/${userId}`, dbChangeHandler);
     });
-
   });
 
   return Promise.resolve();

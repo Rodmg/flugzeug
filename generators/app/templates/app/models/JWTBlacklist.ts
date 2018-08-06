@@ -1,12 +1,10 @@
-
-import { Table, Column, DataType, BelongsTo, ForeignKey } from 'sequelize-typescript';
-import { BaseModel } from '../libraries/BaseModel';
+import { Table, Column, DataType, BelongsTo, ForeignKey } from "sequelize-typescript";
+import { BaseModel } from "../libraries/BaseModel";
 
 @Table({
-  tableName: 'jwtblacklist'
+  tableName: "jwtblacklist"
 })
 export class JWTBlacklist extends BaseModel<JWTBlacklist> {
-  
   @Column({
     type: DataType.STRING(512),
     allowNull: false
@@ -19,5 +17,4 @@ export class JWTBlacklist extends BaseModel<JWTBlacklist> {
     defaultValue: null
   })
   expires: Date;
-  
 }

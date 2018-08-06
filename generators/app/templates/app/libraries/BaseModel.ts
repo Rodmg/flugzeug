@@ -1,5 +1,4 @@
-
-import { Model } from 'sequelize-typescript';
+import { Model } from "sequelize-typescript";
 
 /* 
   BaseModel: 
@@ -8,9 +7,7 @@ import { Model } from 'sequelize-typescript';
 */
 
 export class BaseModel<T> extends Model<T> {
-  
   toJSON() {
     return super.toJSON();
   }
-  
 }
