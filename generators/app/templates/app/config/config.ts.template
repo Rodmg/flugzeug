@@ -78,17 +78,6 @@ export const config: any = {
     logging: false,
     //storage: 'db.sqlite',
     timezone: 'utc' // IMPORTANT For correct timezone management with DB, Tasks etc.
-  },
-
-  mqtt: {
-    user_secret: process.env.MQTT_USER_SECRET || 'Your MQTT User Secret',
-    user_map: process.env.MQTT_USER_MAP ||'afbgchdiej',
-    password_secret: process.env.MQTT_PASSWORD_SECRET || 'Your MQTT Password Secret',
-    password_map: process.env.MQTT_PASSWORD_MAP ||'fagbhcidje',
-    keepalive: 10,
-    connectTimeout: 10*1000,
-    clientId: 'MASTER',
-    uri: process.env.MQTT_URI || 'mqtt://localhost:1883'
   }
 
 };

@@ -16,17 +16,18 @@ setupDB()
     process.exit();
   });
 
-function seed(): Promise<any> {
+function seed(): PromiseLike<any> {
   // Do your seed code here, should return a promise that resolves whenn you are done.
-  
+
   // Creates first admin user
-  return User.count().then(count: number => {
-    if(count === 0) return User.create({
-      name: "Admin",
-      email: "admin@example.com",
-      password: "adminadmin",
-      role: "admin" 
-    });
+  return User.count().then((count: number) => {
+    if (count === 0)
+      return User.create({
+        name: "Admin",
+        email: "admin@example.com",
+        password: "adminadmin",
+        role: "admin"
+      });
     return null;
-  })
+  });
 }

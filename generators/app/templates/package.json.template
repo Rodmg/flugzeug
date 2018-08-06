@@ -59,7 +59,6 @@
     "method-override": "3.0.0",
     "moment": "2.22.2",
     "morgan": "1.9.0",
-    "mqtt": "2.18.3",
     "mysql2": "1.6.1",
     "node-cron": "1.2.1",
     "nodemailer": "4.6.7",

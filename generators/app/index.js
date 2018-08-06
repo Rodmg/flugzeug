@@ -48,12 +48,6 @@ module.exports = class extends Generator {
         name: "websockets",
         message: "Use websockets?",
         default: false
-      },
-      {
-        type: "confirm",
-        name: "mqtt",
-        message: "Use MQTT?",
-        default: false
       }
     ];
 
@@ -88,7 +82,6 @@ module.exports = class extends Generator {
       {
         name: this.props.name,
         author: this.props.author,
-        useMqtt: this.props.mqtt,
         useWebsockets: this.props.websockets
       }
     );
@@ -103,7 +96,7 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.templatePath("app/main.ts.template"),
       this.destinationPath("app/main.ts"),
-      { useMqtt: this.props.mqtt, useWebsockets: this.props.websockets }
+      { useWebsockets: this.props.websockets }
     );
     this.fs.copyTpl(
       this.templatePath("app/server.ts.template"),
@@ -147,13 +140,6 @@ module.exports = class extends Generator {
       this.destinationPath("app/libraries/Log.ts"),
       { name: this.props.name }
     );
-
-    if (this.useMqtt)
-      this.fs.copyTpl(
-        this.templatePath("app/services/MqttClient.ts.template"),
-        this.destinationPath("app/services/MqttClient.ts"),
-        {}
-      );
   }
 
   install() {
