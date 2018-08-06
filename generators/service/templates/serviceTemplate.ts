@@ -1,5 +1,5 @@
 
-import { log } from './../libraries/Log';
+import { log } from "./../libraries/Log";
 
 class <%- serviceName %> {
 

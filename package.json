@@ -53,6 +53,8 @@
     },
     "rules": {
       "camelcase": 0,
+      "no-eq-null": 0,
+      "eqeqeq": 1,
       "prettier/prettier": [
         "error",
         {

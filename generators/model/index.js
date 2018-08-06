@@ -1,7 +1,7 @@
-'use strict';
-const Generator = require('yeoman-generator');
-const chalk = require('chalk');
-const changeCase = require('change-case');
+"use strict";
+const Generator = require("yeoman-generator");
+const chalk = require("chalk");
+const changeCase = require("change-case");
 
 module.exports = class extends Generator {
   constructor(args, options) {
@@ -12,20 +12,20 @@ module.exports = class extends Generator {
 
   prompting() {
     if (!this.silent)
-      this.log('\nWelcome to the ' + chalk.red('Flugzeug Model') + ' generator\n');
+      this.log("\nWelcome to the " + chalk.red("Flugzeug Model") + " generator\n");
 
     const prompts = [
       {
-        type: 'input',
-        name: 'modelName',
-        message: 'Model name:',
-        default: 'Thing',
+        type: "input",
+        name: "modelName",
+        message: "Model name:",
+        default: "Thing",
         filter: changeCase.pascalCase
       },
       {
-        type: 'confirm',
-        name: 'belongsToUser',
-        message: 'Would you like your model to belong to User?',
+        type: "confirm",
+        name: "belongsToUser",
+        message: "Would you like your model to belong to User?",
         default: true
       }
     ];
@@ -40,7 +40,7 @@ module.exports = class extends Generator {
 
   writing() {
     this.fs.copyTpl(
-      this.templatePath('modelTemplate.ts'),
+      this.templatePath("modelTemplate.ts"),
       this.destinationPath(`app/models/${this.props.modelName}.ts`),
       this.props
     );

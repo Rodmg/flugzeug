@@ -1,7 +1,7 @@
-'use strict';
-const Generator = require('yeoman-generator');
-const chalk = require('chalk');
-const changeCase = require('change-case');
+"use strict";
+const Generator = require("yeoman-generator");
+const chalk = require("chalk");
+const changeCase = require("change-case");
 
 module.exports = class extends Generator {
   constructor(args, options) {
@@ -12,41 +12,41 @@ module.exports = class extends Generator {
 
   prompting() {
     if (!this.silent)
-      this.log('\nWelcome to the ' + chalk.red('Flugzeug Controller') + ' generator\n');
+      this.log("\nWelcome to the " + chalk.red("Flugzeug Controller") + " generator\n");
 
     const prompts = [
       {
-        type: 'input',
-        name: 'controllerName',
-        message: 'Controller name:',
-        default: this.opts.modelName == null ? 'Thing' : this.opts.modelName,
+        type: "input",
+        name: "controllerName",
+        message: "Controller name:",
+        default: this.opts.modelName == null ? "Thing" : this.opts.modelName,
         filter: changeCase.pascalCase
       },
       {
-        type: 'input',
-        name: 'modelName',
-        message: 'Model:',
+        type: "input",
+        name: "modelName",
+        message: "Model:",
         default: props => {
           return this.opts.modelName == null ? props.controllerName : this.opts.modelName;
         },
         when: this.opts.modelName == null
       },
       {
-        type: 'input',
-        name: 'apiVersion',
-        message: 'API Version:',
-        default: 'v1'
+        type: "input",
+        name: "apiVersion",
+        message: "API Version:",
+        default: "v1"
       },
       {
-        type: 'confirm',
-        name: 'needsAuth',
-        message: 'Needs authentication?',
+        type: "confirm",
+        name: "needsAuth",
+        message: "Needs authentication?",
         default: true
       },
       {
-        type: 'confirm',
-        name: 'belongsToUser',
-        message: 'Does the model belongs to User?',
+        type: "confirm",
+        name: "belongsToUser",
+        message: "Does the model belongs to User?",
         default: props => {
           return this.opts.belongsToUser == null
             ? props.needsAuth
@@ -69,7 +69,7 @@ module.exports = class extends Generator {
 
   writing() {
     this.fs.copyTpl(
-      this.templatePath('controllerTemplate.ts'),
+      this.templatePath("controllerTemplate.ts"),
       this.destinationPath(
         `app/controllers/${this.props.apiVersion}/${this.props.controllerName}.ts`
       ),
