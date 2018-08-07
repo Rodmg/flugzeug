@@ -1,6 +1,10 @@
-# Flugzeug
+# Flugzeug /ˈfluːktsɔʏ̯k/ ✈️
 
 > Flugzeug Framework
+
+Lightweight backend framework for Node.js, based on TypeScript, Express and Sequelize.
+
+More details: [Documentation](generators/app/templates/docs/Framework.md)
 
 ## Installation
 
