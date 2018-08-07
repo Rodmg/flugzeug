@@ -7,7 +7,7 @@
 First, install [Yeoman](http://yeoman.io) and flugzeug using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
 
 ```bash
-npm install -g yo flugzeug
+npm install -g yo generator-flugzeug
 ```
 
 Then generate your new project:

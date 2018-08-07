@@ -1,6 +1,6 @@
 {
-  "name": "flugzeug",
-  "version": "0.1.0",
+  "name": "generator-flugzeug",
+  "version": "0.1.1",
   "description": "Flugzeug Framework",
   "homepage": "http://rodrigomendez.me",
   "author": {
@@ -8,13 +8,21 @@
     "email": "rmendez@makerlab.mx",
     "url": "http://rodrigomendez.me"
   },
-  "files": ["generators"],
+  "files": [
+    "generators"
+  ],
   "bin": {
     "flug": "./cli.sh",
     "flugzeug": "./cli.sh"
   },
   "main": "generators/index.js",
-  "keywords": ["sequelize", "typescript", "gulp", "mysql", "yeoman-generator"],
+  "keywords": [
+    "sequelize",
+    "typescript",
+    "gulp",
+    "mysql",
+    "yeoman-generator"
+  ],
   "devDependencies": {
     "yeoman-test": "^1.6.0",
     "yeoman-assert": "^3.0.0",
@@ -45,11 +53,20 @@
     "test": "jest"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"],
-    "*.json": ["prettier --write", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "eslintConfig": {
-    "extends": ["xo", "prettier"],
+    "extends": [
+      "xo",
+      "prettier"
+    ],
     "env": {
       "jest": true,
       "node": true
@@ -65,7 +82,9 @@
         }
       ]
     },
-    "plugins": ["prettier"]
+    "plugins": [
+      "prettier"
+    ]
   },
   "repository": "Rodmg/flugzeug",
   "license": "MIT"

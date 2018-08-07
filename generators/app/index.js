@@ -60,14 +60,10 @@ module.exports = class extends Generator {
         type: "input",
         name: "dbname",
         message: "MySQL Database name:",
-        default: "flugzeug-project"
+        default: this._makeName(this.appname),
+        filter: this._makeName
       },
-      {
-        type: "confirm",
-        name: "websockets",
-        message: "Use websockets?",
-        default: false
-      }
+      { type: "confirm", name: "websockets", message: "Use websockets?", default: false }
     ];
 
     return this.prompt(prompts).then(props => {
@@ -85,6 +81,7 @@ module.exports = class extends Generator {
       mkdirp(this.props.name);
       this.destinationRoot(this.destinationPath(this.props.name));
       this.createdFolder = true;
+      this.config.save();
     }
   }
 
