@@ -1,6 +1,6 @@
 {
   "name": "generator-flugzeug",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Flugzeug Framework",
   "homepage": "http://rodrigomendez.me",
   "author": {
@@ -86,6 +86,13 @@
       "prettier"
     ]
   },
-  "repository": "Rodmg/flugzeug",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rodmg/aquila-mqtt-sn-gateway"
+  },
+  "engines": {
+    "node": ">=6.5.0"
+  },
+  "preferGlobal": true,
   "license": "MIT"
 }
