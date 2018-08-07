@@ -1,7 +1,7 @@
 {
-  "name": "generator-flug",
+  "name": "flugzeug",
   "version": "1.0.0",
-  "description": "Flugzeug Generator",
+  "description": "Flugzeug Framework",
   "homepage": "http://rodrigomendez.me",
   "author": {
     "name": "Rodrigo Méndez Gamboa",
@@ -9,6 +9,10 @@
     "url": "http://rodrigomendez.me"
   },
   "files": ["generators"],
+  "bin": {
+    "flug": "./cli.sh",
+    "flugzeug": "./cli.sh"
+  },
   "main": "generators/index.js",
   "keywords": ["sequelize", "typescript", "gulp", "mysql", "yeoman-generator"],
   "devDependencies": {
@@ -37,7 +41,6 @@
     "testEnvironment": "node"
   },
   "scripts": {
-    "prepublish": "nsp check",
     "pretest": "eslint .",
     "precommit": "lint-staged",
     "test": "jest"
@@ -65,6 +68,6 @@
     },
     "plugins": ["prettier"]
   },
-  "repository": "Rodmg/generator-flug",
+  "repository": "Rodmg/flugzeug",
   "license": "MIT"
 }

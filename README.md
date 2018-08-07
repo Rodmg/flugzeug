@@ -1,24 +1,19 @@
-# generator-flug
+# Flugzeug
 
-> Flugzeug Generator
+> Flugzeug Framework
 
 ## Installation
 
-First, install [Yeoman](http://yeoman.io) and generator-flug using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
+First, install [Yeoman](http://yeoman.io) and flugzeug using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
 
 ```bash
-npm install -g yo
-git clone git@gitlab.com:makerlabmx/generator-flug.git
-cd generator-flug
-npm install
-npm link
-cd
+npm install -g yo flugzeug
 ```
 
 Then generate your new project:
 
 ```bash
-yo flug my-project
+flug app my-project
 ```
 
 ## Available generators
@@ -26,10 +21,10 @@ yo flug my-project
 Run any inside your project folder:
 
 ```
-yo flug:api
-yo flug:model
-yo flug:controller
-yo flug:service
+flug api
+flug model
+flug controller
+flug service
 ```
 
 ## License
