@@ -88,7 +88,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rodmg/aquila-mqtt-sn-gateway"
+    "url": "https://github.com/Rodmg/flugzeug"
   },
   "engines": {
     "node": ">=6.5.0"
