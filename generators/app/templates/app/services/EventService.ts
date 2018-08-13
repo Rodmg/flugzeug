@@ -26,13 +26,13 @@ class EventService extends EventEmitter {
 
       if (instance.userId) {
         this.emit(`db/update/${instance.userId}`, {
-          model: instance.$modelOptions.name.singular,
+          model: instance._modelOptions.name.singular,
           id: instance.id,
           changed: changes
         });
         this.emit(`db/change/${instance.userId}`, {
           event: "update",
-          model: instance.$modelOptions.name.singular,
+          model: instance._modelOptions.name.singular,
           id: instance.id,
           changed: changes
         });
@@ -47,12 +47,12 @@ class EventService extends EventEmitter {
     db.addHook("afterDestroy", (instance: any, options: any) => {
       if (instance.userId) {
         this.emit(`db/destroy/${instance.userId}`, {
-          model: instance.$modelOptions.name.singular,
+          model: instance._modelOptions.name.singular,
           id: instance.id
         });
         this.emit(`db/change/${instance.userId}`, {
           event: "destroy",
-          model: instance.$modelOptions.name.singular,
+          model: instance._modelOptions.name.singular,
           id: instance.id
         });
       }
@@ -61,12 +61,12 @@ class EventService extends EventEmitter {
     db.addHook("afterCreate", (instance: any, options: any) => {
       if (instance.userId) {
         this.emit(`db/create/${instance.userId}`, {
-          model: instance.$modelOptions.name.singular,
+          model: instance._modelOptions.name.singular,
           id: instance.id
         });
         this.emit(`db/change/${instance.userId}`, {
           event: "create",
-          model: instance.$modelOptions.name.singular,
+          model: instance._modelOptions.name.singular,
           id: instance.id
         });
       }
