@@ -97,7 +97,7 @@ module.exports = class extends Generator {
 
   writing() {
     // Copy all non-template files
-    this.fs.copy(this.templatePath(""), this.destinationPath(""), {
+    this.fs.copy(this.templatePath("**/*"), this.destinationPath(""), {
       globOptions: {
         dot: true,
         ignore: "**/*.template"
