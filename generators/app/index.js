@@ -25,7 +25,7 @@ module.exports = class extends Generator {
     this.argument("name", {
       type: String,
       required: false,
-      dscription: "Your project name"
+      description: "Your project name"
     });
   }
 

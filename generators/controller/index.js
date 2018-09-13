@@ -8,11 +8,22 @@ module.exports = class extends Generator {
     super(args, options);
     this.silent = options.silent || false;
     this.opts = options.opts || {};
+
+    this.argument("name", {
+      type: String,
+      required: false,
+      description: "Your controller name"
+    });
   }
 
   prompting() {
     if (!this.silent)
       this.log("\nWelcome to the " + chalk.red("Flugzeug Controller") + " generator\n");
+
+    // Set default controller name to the name passed as arguments if opts.modelName is not present
+    if (this.opts.modelName == null && this.options.name != null) {
+      this.opts.modelName = changeCase.pascalCase(this.options.name);
+    }
 
     const prompts = [
       {

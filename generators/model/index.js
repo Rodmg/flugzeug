@@ -8,18 +8,30 @@ module.exports = class extends Generator {
     super(args, options);
     this.silent = options.silent || false;
     this.opts = options.opts || {};
+
+    this.argument("name", {
+      type: String,
+      required: false,
+      description: "Your model name"
+    });
   }
 
   prompting() {
     if (!this.silent)
       this.log("\nWelcome to the " + chalk.red("Flugzeug Model") + " generator\n");
 
+    // Set default model name to the name passed as arguments
+    let defaultModelName = this.opts.apiName == null ? "Thing" : this.opts.apiName;
+    if (this.options.name != null) {
+      defaultModelName = changeCase.pascalCase(this.options.name);
+    }
+
     const prompts = [
       {
         type: "input",
         name: "modelName",
         message: "Model name:",
-        default: "Thing",
+        default: defaultModelName,
         filter: changeCase.pascalCase
       },
       {
