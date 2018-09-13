@@ -106,6 +106,11 @@ module.exports = class extends Generator {
 
     // Copy templates
     this.fs.copyTpl(
+      this.templatePath(".gitignore.template"),
+      this.destinationPath(".gitignore"),
+      {}
+    );
+    this.fs.copyTpl(
       this.templatePath("package.json.template"),
       this.destinationPath("package.json"),
       {
