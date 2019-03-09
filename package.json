@@ -8,13 +8,22 @@
     "email": "rmendez@makerlab.mx",
     "url": "http://rodrigomendez.me"
   },
-  "files": ["generators", "cli.sh"],
+  "files": [
+    "generators",
+    "cli.sh"
+  ],
   "bin": {
     "flug": "./cli.sh",
     "flugzeug": "./cli.sh"
   },
   "main": "generators/index.js",
-  "keywords": ["sequelize", "typescript", "gulp", "mysql", "yeoman-generator"],
+  "keywords": [
+    "sequelize",
+    "typescript",
+    "gulp",
+    "mysql",
+    "yeoman-generator"
+  ],
   "devDependencies": {
     "yeoman-test": "^1.6.0",
     "yeoman-assert": "^3.0.0",
@@ -45,11 +54,20 @@
     "test": "jest"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"],
-    "*.json": ["prettier --write", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "eslintConfig": {
-    "extends": ["xo", "prettier"],
+    "extends": [
+      "xo",
+      "prettier"
+    ],
     "env": {
       "jest": true,
       "node": true
@@ -65,7 +83,9 @@
         }
       ]
     },
-    "plugins": ["prettier"]
+    "plugins": [
+      "prettier"
+    ]
   },
   "repository": {
     "type": "git",
