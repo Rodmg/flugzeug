@@ -31,6 +31,14 @@ flug controller
 flug service
 ```
 
+## Development
+
+For testing the generator during development, use:
+
+```
+npm link
+```
+
 ## License
 
 MIT © [Rodrigo Méndez Gamboa](http://rodrigomendez.me)

@@ -1,6 +1,6 @@
 {
   "name": "generator-flugzeug",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Flugzeug Framework",
   "homepage": "http://rodrigomendez.me",
   "author": {
@@ -34,15 +34,15 @@
     "eslint-config-prettier": "^2.4.0",
     "eslint-plugin-prettier": "^2.2.0",
     "eslint-config-xo": "^0.18.2",
-    "jest": "^23.4.2",
-    "jest-cli": "^23.4.2"
+    "jest": "^24.8.0",
+    "jest-cli": "^24.8.0"
   },
   "dependencies": {
     "base64-url": "^2.0.0",
     "boxen": "^1.3.0",
     "chalk": "^1.1.3",
     "change-case": "^3.0.1",
-    "yeoman-generator": "^1.0.0",
+    "yeoman-generator": "^4.0.1",
     "yosay": "^2.0.0"
   },
   "jest": {
@@ -75,7 +75,7 @@
     "rules": {
       "camelcase": 0,
       "no-eq-null": 0,
-      "eqeqeq": 1,
+      "eqeqeq": 0,
       "prettier/prettier": [
         "error",
         {
