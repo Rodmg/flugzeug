@@ -6,6 +6,10 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "gulp",
+    "watch": "gulp watch",
+    "clean": "gulp clean",
+    "seed": "gulp seed",
+    "sql": "gulp sql",
     "start": "node --require source-map-support/register dist/main.js",
     "test": "mocha"
   },

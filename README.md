@@ -8,10 +8,10 @@ More details: [Documentation](generators/app/templates/docs/Framework.md)
 
 ## Installation
 
-First, install [Yeoman](http://yeoman.io), generator-flugzeug and gulp using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
+First, install [Yeoman](http://yeoman.io) and generator-flugzeug using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
 
 ```bash
-npm install -g yo generator-flugzeug gulp
+npm install -g yo generator-flugzeug
 ```
 
 Then generate your new project:
