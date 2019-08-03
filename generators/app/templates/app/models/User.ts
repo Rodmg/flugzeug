@@ -10,7 +10,7 @@ import {
   BeforeUpdate,
   BeforeBulkUpdate,
   ForeignKey,
-  BeforeDelete,
+  BeforeDestroy,
   HasMany
 } from "sequelize-typescript";
 import { BaseModel } from "../libraries/BaseModel";
@@ -86,7 +86,7 @@ export class User extends BaseModel<User> {
     return Promise.resolve();
   }
 
-  @BeforeDelete
+  @BeforeDestroy
   static deleteChilds(user: User, options: any) {
     return Promise.all([Profile.destroy({ where: { userId: user.id } })]);
   }
@@ -120,7 +120,7 @@ export class User extends BaseModel<User> {
   }
 
   toJSON() {
-    let object = super.toJSON();
+    let object: any = super.toJSON();
     delete object.role;
     delete object.password;
     delete object.createdAt;

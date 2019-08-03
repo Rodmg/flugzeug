@@ -13,6 +13,5 @@
     "emitDecoratorMetadata": true
   },
   "include": ["app/**/*.ts"],
-  "exclude": ["node_modules"],
-  "files": ["typings/*.d.ts"]
+  "exclude": ["node_modules"]
 }

@@ -13,6 +13,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/bcrypt": "2.0.0",
+    "@types/bluebird": "^3.5.27",
     "@types/body-parser": "1.17.0",
     "@types/compression": "0.0.36",
     "@types/ejs": "2.6.0",
@@ -29,6 +30,7 @@
     "@types/serve-favicon": "2.2.30",
     "@types/socket.io": "1.4.36",
     "@types/uuid": "3.4.3",
+    "@types/validator": "^10.11.2",
     "@types/winston": "2.3.9",
     "chai": "4.1.2",
     "del": "3.0.0",
@@ -39,7 +41,7 @@
     "gulp-typescript": "4.0.2",
     "mocha": "5.2.0",
     "sqlite3": "4.0.2",
-    "typescript": "2.9.2"
+    "typescript": "3.5.3"
   },
   "dependencies": {
     "base64-url": "2.2.0",
@@ -63,10 +65,10 @@
     "nodemailer": "4.6.7",
     "nodemailer-mailgun-transport": "1.4.0",
     "require-dir-all": "0.4.15",
-    "reflect-metadata": "0.1.12",
+    "reflect-metadata": "0.1.13",
     "segfault-handler": "1.0.1",
-    "sequelize": "4.38.0",
-    "sequelize-typescript": "0.6.2",
+    "sequelize": "5.12.2",
+    "sequelize-typescript": "^1.0.0-beta.3",
     "serve-favicon": "2.5.0",
     "short-uuid": "3.0.0",
     "socket.io": "2.1.1",

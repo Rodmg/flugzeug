@@ -62,14 +62,14 @@ export function filterOwner(key: string = "userId") {
   };
 }
 
-export function isOwner(model: Model<any, any>, key: string = "userId") {
+export function isOwner(model: any, key: string = "userId") {
   return (req: Request, res: Response, next: Function) => {
     let userId = req.session.jwt.id;
     if (userId == null) return Controller.unauthorized(res);
     let id: number = req.params.id;
     if (id == null) return Controller.badRequest(res, "Bad Request: No id in request.");
     model
-      .findById(id)
+      .findByPk(id)
       .then((result: any) => {
         if (!result) return Controller.notFound(res);
         if (result[key] !== userId) return Controller.forbidden(res);

@@ -1,9 +1,9 @@
-import { Sequelize, ISequelizeConfig } from "sequelize-typescript";
-import { log } from "./libraries/Log";
+import { Sequelize, SequelizeOptions } from "sequelize-typescript";
+import { Op } from "sequelize";
 import { config } from "./config/config";
 import * as path from "path";
 
-const dbOptions: ISequelizeConfig = {
+const dbOptions: SequelizeOptions = {
   ...config.db,
   modelPaths: [path.join(__dirname, "/models")],
   define: {
@@ -11,40 +11,40 @@ const dbOptions: ISequelizeConfig = {
     timestamps: true
   },
   operatorsAliases: {
-    $eq: Sequelize.Op.eq,
-    $ne: Sequelize.Op.ne,
-    $gte: Sequelize.Op.gte,
-    $gt: Sequelize.Op.gt,
-    $lte: Sequelize.Op.lte,
-    $lt: Sequelize.Op.lt,
-    $not: Sequelize.Op.not,
-    $in: Sequelize.Op.in,
-    $notIn: Sequelize.Op.notIn,
-    $is: Sequelize.Op.is,
-    $like: Sequelize.Op.like,
-    $notLike: Sequelize.Op.notLike,
-    $iLike: Sequelize.Op.iLike,
-    $notILike: Sequelize.Op.notILike,
-    $regexp: Sequelize.Op.regexp,
-    $notRegexp: Sequelize.Op.notRegexp,
-    $iRegexp: Sequelize.Op.iRegexp,
-    $notIRegexp: Sequelize.Op.notIRegexp,
-    $between: Sequelize.Op.between,
-    $notBetween: Sequelize.Op.notBetween,
-    $overlap: Sequelize.Op.overlap,
-    $contains: Sequelize.Op.contains,
-    $contained: Sequelize.Op.contained,
-    $adjacent: Sequelize.Op.adjacent,
-    $strictLeft: Sequelize.Op.strictLeft,
-    $strictRight: Sequelize.Op.strictRight,
-    $noExtendRight: Sequelize.Op.noExtendRight,
-    $noExtendLeft: Sequelize.Op.noExtendLeft,
-    $and: Sequelize.Op.and,
-    $or: Sequelize.Op.or,
-    $any: Sequelize.Op.any,
-    $all: Sequelize.Op.all,
-    $values: Sequelize.Op.values,
-    $col: Sequelize.Op.col
+    $eq: Op.eq,
+    $ne: Op.ne,
+    $gte: Op.gte,
+    $gt: Op.gt,
+    $lte: Op.lte,
+    $lt: Op.lt,
+    $not: Op.not,
+    $in: Op.in,
+    $notIn: Op.notIn,
+    $is: Op.is,
+    $like: Op.like,
+    $notLike: Op.notLike,
+    $iLike: Op.iLike,
+    $notILike: Op.notILike,
+    $regexp: Op.regexp,
+    $notRegexp: Op.notRegexp,
+    $iRegexp: Op.iRegexp,
+    $notIRegexp: Op.notIRegexp,
+    $between: Op.between,
+    $notBetween: Op.notBetween,
+    $overlap: Op.overlap,
+    $contains: Op.contains,
+    $contained: Op.contained,
+    $adjacent: Op.adjacent,
+    $strictLeft: Op.strictLeft,
+    $strictRight: Op.strictRight,
+    $noExtendRight: Op.noExtendRight,
+    $noExtendLeft: Op.noExtendLeft,
+    $and: Op.and,
+    $or: Op.or,
+    $any: Op.any,
+    $all: Op.all,
+    $values: Op.values,
+    $col: Op.col
   }
 };
 
