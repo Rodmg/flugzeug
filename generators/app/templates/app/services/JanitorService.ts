@@ -9,6 +9,7 @@
 import * as cron from "node-cron";
 import { log } from "./../libraries/Log";
 import { JWTBlacklist } from "./../models/JWTBlacklist";
+import { Op } from "sequelize";
 
 class JanitorService {
   constructor() {}
@@ -22,7 +23,7 @@ class JanitorService {
       let days30ago = new Date(today.getTime() - 30 * day);
       let hours1ago = new Date(today.getTime() - 1 * hour);
       // Cleanup expired blacklisted tokens each 24h
-      JWTBlacklist.destroy({ where: { expires: { $lt: today } } }).catch(err => {
+      JWTBlacklist.destroy({ where: { expires: { [Op.lt]: today } } }).catch(err => {
         if (err) return log.error("Jaintor error:", err);
       });
     });

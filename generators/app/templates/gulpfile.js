@@ -1,24 +1,43 @@
 "use strict";
-var gulp = require("gulp");
-var tsc = require("gulp-typescript");
-var del = require("del");
-var sourcemaps = require("gulp-sourcemaps");
-var path = require("path");
-var spawn = require("child_process").spawn;
-var runSequence = require("run-sequence");
-var shell = require("gulp-shell");
+const gulp = require("gulp");
+const tsc = require("gulp-typescript");
+const del = require("del");
+const sourcemaps = require("gulp-sourcemaps");
+const spawn = require("child_process").spawn;
+const shell = require("gulp-shell");
+const tsProject = tsc.createProject("tsconfig.json");
 
 // Node process
-var node = null;
+let node = null;
+// Executes a node script with params
+// @params: string[] -> The params you would pass to the node command
+function execute(params) {
+  if (node) node.kill();
+  node = spawn("node", params, {
+    stdio: "inherit"
+  });
+  node.on("close", function(code) {
+    if (code === 8) {
+      gulp.log("Error detected, waiting for changes...");
+    }
+  });
+  return Promise.resolve();
+}
 
-var tsProject = tsc.createProject("tsconfig.json");
+function clean() {
+  return del("dist");
+}
 
-gulp.task("clean", function(cb) {
-  return del("dist", cb);
-});
+function copyViews() {
+  return gulp.src("app/views/**").pipe(gulp.dest("dist/views/"));
+}
 
-gulp.task("compile", function() {
-  var tsResult = gulp
+function copyLocales() {
+  return gulp.src("app/locales/**").pipe(gulp.dest("dist/locales/"));
+}
+
+function compile() {
+  const tsResult = gulp
     .src(["app/**/*.ts"])
     .pipe(sourcemaps.init())
     .pipe(tsProject());
@@ -31,72 +50,51 @@ gulp.task("compile", function() {
       })
     )
     .pipe(gulp.dest("dist"));
-});
+}
 
-gulp.task("build", function(cb) {
-  runSequence("clean", "compile", "copy-views", "copy-locales", cb);
-});
+const build = gulp.series(clean, compile, copyViews, copyLocales);
 
-gulp.task("clean-serve", function(cb) {
-  runSequence("clean", "copy-views", "copy-locales", "serve", cb);
-});
+function doServe() {
+  return execute(["--require", "source-map-support/register", "dist/main.js"]);
+}
+const serve = gulp.series(compile, doServe);
+
+const cleanServe = gulp.series(clean, copyViews, copyLocales, serve);
 
 // first time cleans and compiles, subsecuent times only compiles
-gulp.task("watch", ["clean-serve"], function() {
-  gulp.watch("app/**/*.ts", ["serve"]);
-});
+function doWatch() {
+  return gulp.watch("app/**/*.ts", serve);
+}
+const watch = gulp.series(cleanServe, doWatch);
 
-gulp.task("copy-views", function() {
-  return gulp.src("app/views/**").pipe(gulp.dest("dist/views/"));
-});
+function doSql() {
+  return execute(["--require", "source-map-support/register", "dist/dumpDbCreate.js"]);
+}
+const sql = gulp.series(compile, doSql);
 
-gulp.task("copy-locales", function() {
-  return gulp.src("app/locales/**").pipe(gulp.dest("dist/locales/"));
-});
+function doSeed() {
+  return execute(["--require", "source-map-support/register", "dist/seed.js"]);
+}
+const seed = gulp.series(compile, doSeed);
 
-gulp.task("serve", ["compile"], function() {
-  if (node) node.kill();
-  node = spawn("node", ["--require", "source-map-support/register", "dist/main.js"], {
-    stdio: "inherit"
-  });
-  node.on("close", function(code) {
-    if (code === 8) {
-      gulp.log("Error detected, waiting for changes...");
-    }
-  });
-});
+const test = gulp.series(build, shell.task("npm test"));
 
-gulp.task("sql", ["compile"], function() {
-  if (node) node.kill();
-  node = spawn("node", ["--require", "source-map-support/register", "dist/dumpDbCreate.js"], {
-    stdio: "inherit"
-  });
-  node.on("close", function(code) {
-    if (code === 8) {
-      gulp.log("Error detected, waiting for changes...");
-    }
-  });
-});
-
-gulp.task("seed", ["compile"], function() {
-  if (node) node.kill();
-  node = spawn("node", ["--require", "source-map-support/register", "dist/seed.js"], {
-    stdio: "inherit"
-  });
-  node.on("close", function(code) {
-    if (code === 8) {
-      gulp.log("Error detected, waiting for changes...");
-    }
-  });
-});
-
-gulp.task("test", ["build"], shell.task("npm test"));
-
-gulp.task("production", ["build"]);
-
-gulp.task("default", ["production"]);
+const production = gulp.series(build);
 
 // clean up if an error goes unhandled.
 process.on("exit", function() {
   if (node) node.kill();
 });
+
+module.exports = {
+  clean,
+  build,
+  cleanServe,
+  watch,
+  serve,
+  sql,
+  seed,
+  test,
+  production,
+  default: production
+};

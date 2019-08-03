@@ -100,7 +100,7 @@ module.exports = class extends Generator {
     this.fs.copy(this.templatePath("**/*"), this.destinationPath(""), {
       globOptions: {
         dot: true,
-        ignore: "**/*.template"
+        ignore: ["**/*.template"]
       }
     });
 
@@ -189,7 +189,7 @@ module.exports = class extends Generator {
 For instructions on how to get started, please see README.md
 Run it with:
 ${this.createdFolder ? "\n  " + chalk.blue("cd ") + chalk.blue(this.props.name) : ""}
-  ${chalk.blue("gulp watch")}`;
+  ${chalk.blue("npm run watch")}`;
     const msg = boxen(content, { padding: 1, borderStyle: "round" });
     this.log(msg);
   }
