@@ -41,6 +41,10 @@ module.exports = class extends Generator {
       this.appname = this.options.name;
     }
 
+    const gitName = this.user.git.name();
+    const gitEmail = this.user.git.email();
+    const defaultAuthor = `${gitName || "Me"} <${gitEmail || "me@example.com"}>`;
+
     const prompts = [
       {
         type: "input",
@@ -53,7 +57,7 @@ module.exports = class extends Generator {
         type: "input",
         name: "author",
         message: "Author:",
-        default: "Me <me@example.com>",
+        default: defaultAuthor,
         store: true
       },
       {
@@ -63,7 +67,12 @@ module.exports = class extends Generator {
         default: this._makeName(this.appname),
         filter: this._makeName
       },
-      { type: "confirm", name: "websockets", message: "Use websockets?", default: false }
+      {
+        type: "confirm",
+        name: "websockets",
+        message: "Use websockets?",
+        default: false
+      }
     ];
 
     return this.prompt(prompts).then(props => {
@@ -185,6 +194,11 @@ module.exports = class extends Generator {
   }
 
   end() {
+    // Initialize git repo
+    this.spawnCommandSync("git", ["init", "--quiet"]);
+    this.spawnCommandSync("git", ["add", "."]);
+    this.spawnCommandSync("git", ["commit", "-m", "Initial Project Setup"]);
+
     const content = `${chalk.green("Your project is ready!")}
 For instructions on how to get started, please see README.md
 Run it with:
