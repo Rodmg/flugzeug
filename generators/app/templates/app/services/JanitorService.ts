@@ -12,20 +12,22 @@ import { JWTBlacklist } from "./../models/JWTBlacklist";
 import { Op } from "sequelize";
 
 class JanitorService {
-  constructor() {}
-
   init() {
     // Every day at 0:00
     cron.schedule("0 0 * * *", () => {
-      let today = new Date();
-      let hour = 60 * 60 * 1000;
-      let day = 24 * hour;
-      let days30ago = new Date(today.getTime() - 30 * day);
-      let hours1ago = new Date(today.getTime() - 1 * hour);
+      const today = new Date();
+      // Useful variables:
+      // const hour = 60 * 60 * 1000;
+      // const day = 24 * hour;
+      // const days30ago = new Date(today.getTime() - 30 * day);
+      // const hours1ago = new Date(today.getTime() - 1 * hour);
+
       // Cleanup expired blacklisted tokens each 24h
-      JWTBlacklist.destroy({ where: { expires: { [Op.lt]: today } } }).catch(err => {
-        if (err) return log.error("Jaintor error:", err);
-      });
+      JWTBlacklist.destroy({ where: { expires: { [Op.lt]: today } } }).catch(
+        err => {
+          if (err) return log.error("Jaintor error:", err);
+        },
+      );
     });
   }
 }

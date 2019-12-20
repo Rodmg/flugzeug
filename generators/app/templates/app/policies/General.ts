@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { default as auth } from "./../controllers/v1/Auth";
 import * as _ from "lodash";
-import { Model } from "sequelize";
 import { Controller } from "./../libraries/Controller";
 
 /*
@@ -12,15 +11,15 @@ import { Controller } from "./../libraries/Controller";
 export function validateJWT(type: string) {
   return (req: Request, res: Response, next: Function) => {
     let token: string = null;
-    let authorization: string = req.get("Authorization");
+    const authorization: string = req.get("Authorization");
     if (authorization == null) {
       Controller.unauthorized(res, "No Token Present");
       return null;
     }
-    let parts: Array<string> = authorization.split(" ");
+    const parts: Array<string> = authorization.split(" ");
     if (parts.length === 2) {
-      let scheme: string = parts[0];
-      let credentials: string = parts[1];
+      const scheme: string = parts[0];
+      const credentials: string = parts[1];
 
       if (/^Bearer$/i.test(scheme)) {
         token = credentials;
@@ -51,10 +50,10 @@ export function validateJWT(type: string) {
   Enforces access only to owner
     key: key to compare user id
 */
-export function filterOwner(key: string = "userId") {
+export function filterOwner(key = "userId") {
   return (req: Request, res: Response, next: Function) => {
     if (req.session == null) req.session = {};
-    let id = req.session.jwt.id;
+    const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
     if (req.session.where == null) req.session.where = {};
     req.session.where[key] = id;
@@ -62,12 +61,13 @@ export function filterOwner(key: string = "userId") {
   };
 }
 
-export function isOwner(model: any, key: string = "userId") {
+export function isOwner(model: any, key = "userId") {
   return (req: Request, res: Response, next: Function) => {
-    let userId = req.session.jwt.id;
+    const userId = req.session.jwt.id;
     if (userId == null) return Controller.unauthorized(res);
-    let id: number = req.params.id;
-    if (id == null) return Controller.badRequest(res, "Bad Request: No id in request.");
+    const id: number = parseInt(req.params.id);
+    if (id == null)
+      return Controller.badRequest(res, "Bad Request: No id in request.");
     model
       .findByPk(id)
       .then((result: any) => {
@@ -76,7 +76,7 @@ export function isOwner(model: any, key: string = "userId") {
         req.session.instance = result;
         next();
       })
-      .catch(err => {
+      .catch(() => {
         Controller.serverError(res);
       });
   };
@@ -86,10 +86,10 @@ export function isOwner(model: any, key: string = "userId") {
   Appends userId to body (useful for enforcing ownership when creating items)
     key: key to add/modify on body
 */
-export function appendUser(key: string = "userId") {
+export function appendUser(key = "userId") {
   return (req: Request, res: Response, next: Function) => {
     if (req.session == null) req.session = {};
-    let id = req.session.jwt.id;
+    const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
     if (!req.body) req.body = {};
     req.body[key] = id;
@@ -104,12 +104,15 @@ export function stripNestedObjects() {
   return (req: Request, res: Response, next: Function) => {
     if (!req.body) req.body = {};
     // Iterate through all keys in the body
-    for (let key in req.body) {
+    for (const key in req.body) {
       if (req.body.hasOwnProperty(key)) {
         // Validate if not from prototype
-        if (Object.prototype.toString.call(req.body[key]) === "[object Object]") {
+        if (
+          Object.prototype.toString.call(req.body[key]) === "[object Object]"
+        ) {
           // Append id and delete original
-          if (req.body[key].id !== undefined) req.body[`${key}Id`] = req.body[key].id;
+          if (req.body[key].id !== undefined)
+            req.body[`${key}Id`] = req.body[key].id;
           delete req.body[key];
         }
       }
@@ -124,7 +127,7 @@ export function stripNestedObjects() {
 export function filterRoles(roles: Array<string>) {
   return (req: Request, res: Response, next: Function) => {
     if (req.session == null) req.session = {};
-    let role = req.session.jwt.role;
+    const role = req.session.jwt.role;
     if (role == null) return Controller.unauthorized(res);
     if (roles.indexOf(role) < 0) return Controller.unauthorized(res);
     next();
@@ -138,9 +141,10 @@ export function filterRoles(roles: Array<string>) {
 export function isSelfUser() {
   return (req: Request, res: Response, next: Function) => {
     if (req.session == null) req.session = {};
-    let id = req.session.jwt.id;
+    const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
-    if (parseInt(id) !== parseInt(req.params.id)) return Controller.unauthorized(res);
+    if (parseInt(id) !== parseInt(req.params.id))
+      return Controller.unauthorized(res);
     next();
   };
 }

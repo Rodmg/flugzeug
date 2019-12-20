@@ -20,22 +20,26 @@ class EmailService {
           from: config.email.from_address,
           to: email,
           subject: subject,
-          html: html
+          html: html,
         },
         (err, info: any) => {
           if (err) return reject(err);
           return resolve(info);
-        }
+        },
       );
     });
   }
 
   private compileTemplate(context: any): Promise<string> {
     return new Promise((resolve, reject) => {
-      ejs.renderFile(path.join(__dirname, "../views/email/template.ejs"), context, (err, str) => {
-        if (err) return reject(err);
-        return resolve(str);
-      });
+      ejs.renderFile(
+        path.join(__dirname, "../views/email/template.ejs"),
+        context,
+        (err, str) => {
+          if (err) return reject(err);
+          return resolve(str);
+        },
+      );
     });
   }
 
@@ -44,12 +48,12 @@ class EmailService {
     subject: string,
     page: string,
     locale: string,
-    context?: any
+    context?: any,
   ): Promise<any> {
     if (context == null) context = {};
     context.page = page;
 
-    let t: any = {};
+    const t: any = {};
     i18n.init(t);
     if (locale == null) locale = "en";
     t.setLocale(locale);

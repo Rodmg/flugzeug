@@ -1,13 +1,14 @@
-import { Application, static as Static, Request, Response } from "express";
+import { Application, static as Static } from "express";
 import * as path from "path";
-import { log } from "./libraries/Log";
-import { config } from "./config/config";
+import { log } from "@/libraries/Log";
 
 const importedCtrls1 = require("require-dir-all")("controllers/v1");
-const controllers1 = Object.keys(importedCtrls1).map(k => importedCtrls1[k].default);
+const controllers1 = Object.keys(importedCtrls1).map(
+  k => importedCtrls1[k].default,
+);
 
 export function routes(app: Application) {
-  for (let controller of controllers1) {
+  for (const controller of controllers1) {
     if (controller.name == null || controller.name.length === 0) {
       log.error("Invalid controller name:", controller.name, controller);
       continue;

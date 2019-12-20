@@ -1,6 +1,6 @@
 {
   "name": "generator-flugzeug",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Flugzeug Framework",
   "homepage": "http://rodrigomendez.me",
   "author": {
@@ -92,7 +92,7 @@
     "url": "https://github.com/Rodmg/flugzeug"
   },
   "engines": {
-    "node": ">=6.5.0"
+    "node": ">=8.10.0"
   },
   "preferGlobal": true,
   "license": "MIT"

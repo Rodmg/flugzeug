@@ -5,6 +5,7 @@ const del = require("del");
 const sourcemaps = require("gulp-sourcemaps");
 const spawn = require("child_process").spawn;
 const shell = require("gulp-shell");
+const tsAlias = require("gulp-ts-alias");
 const tsProject = tsc.createProject("tsconfig.json");
 
 // Node process
@@ -39,6 +40,7 @@ function copyLocales() {
 function compile() {
   const tsResult = gulp
     .src(["app/**/*.ts"])
+    .pipe(tsAlias({ configuration: tsProject.config }))
     .pipe(sourcemaps.init())
     .pipe(tsProject());
   return tsResult.js
@@ -68,7 +70,11 @@ function doWatch() {
 const watch = gulp.series(cleanServe, doWatch);
 
 function doSql() {
-  return execute(["--require", "source-map-support/register", "dist/dumpDbCreate.js"]);
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/dumpDbCreate.js"
+  ]);
 }
 const sql = gulp.series(compile, doSql);
 
