@@ -1,5 +1,5 @@
 import { Table, Column, DataType } from "sequelize-typescript";
-import { BaseModel } from "../libraries/BaseModel";
+import { BaseModel } from "@/libraries/BaseModel";
 
 @Table({
   tableName: "jwtblacklist",

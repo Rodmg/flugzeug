@@ -1,7 +1,7 @@
-import { Controller } from "./../../libraries/Controller";
-import { User } from "./../../models/User";
+import { Controller } from "@/libraries/Controller";
+import { User } from "@/models/User";
 import { Router } from "express";
-import { validateJWT, isSelfUser, filterRoles } from "./../../policies/General";
+import { validateJWT, isSelfUser, filterRoles } from "@/policies/General";
 
 export class UserController extends Controller {
   constructor() {

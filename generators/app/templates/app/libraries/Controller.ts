@@ -1,8 +1,8 @@
 import { Model } from "sequelize-typescript";
 import { Request, Response, Router } from "express";
 import { log } from "./Log";
-import { db } from "./../db";
-import { config } from "./../config/config";
+import { db } from "@/db";
+import { config } from "@/config/config";
 import * as _ from "lodash";
 
 export class Controller {

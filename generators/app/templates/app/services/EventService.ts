@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from "events";
-import { db } from "./../db";
+import { db } from "@/db";
 
 class EventService extends EventEmitter {
   constructor() {

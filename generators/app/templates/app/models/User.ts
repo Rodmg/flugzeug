@@ -10,7 +10,7 @@ import {
   BeforeBulkUpdate,
   BeforeDestroy,
 } from "sequelize-typescript";
-import { BaseModel } from "../libraries/BaseModel";
+import { BaseModel } from "@/libraries/BaseModel";
 import { Profile } from "./Profile";
 import * as bcrypt from "bcrypt";
 

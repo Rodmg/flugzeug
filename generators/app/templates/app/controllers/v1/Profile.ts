@@ -1,12 +1,12 @@
-import { Controller } from "./../../libraries/Controller";
-import { Profile } from "./../../models/Profile";
+import { Controller } from "@/libraries/Controller";
+import { Profile } from "@/models/Profile";
 import { Router } from "express";
 import {
   validateJWT,
   filterOwner,
   appendUser,
   stripNestedObjects,
-} from "./../../policies/General";
+} from "@/policies/General";
 
 export class ProfileController extends Controller {
   constructor() {

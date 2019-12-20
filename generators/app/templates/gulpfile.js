@@ -15,7 +15,7 @@ let node = null;
 function execute(params) {
   if (node) node.kill();
   node = spawn("node", params, {
-    stdio: "inherit"
+    stdio: "inherit",
   });
   node.on("close", function(code) {
     if (code === 8) {
@@ -48,8 +48,8 @@ function compile() {
       sourcemaps.write(".", {
         sourceRoot: function(file) {
           return file.cwd + "/app";
-        }
-      })
+        },
+      }),
     )
     .pipe(gulp.dest("dist"));
 }
@@ -73,7 +73,7 @@ function doSql() {
   return execute([
     "--require",
     "source-map-support/register",
-    "dist/dumpDbCreate.js"
+    "dist/dumpDbCreate.js",
   ]);
 }
 const sql = gulp.series(compile, doSql);
@@ -102,5 +102,5 @@ module.exports = {
   seed,
   test,
   production,
-  default: production
+  default: production,
 };

@@ -2,7 +2,7 @@ import * as winston from "winston";
 import * as SegfaultHandler from "segfault-handler";
 import * as fs from "fs";
 import * as path from "path";
-import { config } from "./../config/config";
+import { config } from "@/config/config";
 
 export const log = new winston.Logger();
 export const requestLog = new winston.Logger();

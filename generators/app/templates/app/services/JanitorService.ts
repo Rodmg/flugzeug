@@ -7,8 +7,8 @@
 */
 
 import * as cron from "node-cron";
-import { log } from "./../libraries/Log";
-import { JWTBlacklist } from "./../models/JWTBlacklist";
+import { log } from "@/libraries/Log";
+import { JWTBlacklist } from "@/models/JWTBlacklist";
 import { Op } from "sequelize";
 
 class JanitorService {

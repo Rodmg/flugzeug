@@ -18,7 +18,20 @@ export function routes(app: Application) {
 
   app.use(Static(path.join(__dirname, "../public")));
 
-  // // All undefined asset or api routes should return a 404
-  // app.route('/:url(api|auth|components|app|bower_components|assets)/*')
-  //  .get(errors[404]);
+  // Not Found Handler
+  app.use((req, res) => {
+    res.status(404);
+
+    if (req.accepts("html")) {
+      res.render("404");
+      return;
+    }
+
+    if (req.accepts("json")) {
+      res.send({ error: "Not Found" });
+      return;
+    }
+
+    res.type("txt").send("Not Found");
+  });
 }
