@@ -1,13 +1,12 @@
-import { Controller } from "./../../libraries/Controller";
-import { Profile } from "./../../models/Profile";
-import { Request, Response, Router } from "express";
+import { Controller } from "@/libraries/Controller";
+import { Profile } from "@/models/Profile";
+import { Router } from "express";
 import {
   validateJWT,
   filterOwner,
   appendUser,
   stripNestedObjects,
-  filterRoles
-} from "./../../policies/General";
+} from "@/policies/General";
 
 export class ProfileController extends Controller {
   constructor() {
@@ -17,9 +16,11 @@ export class ProfileController extends Controller {
   }
 
   routes(): Router {
-    this.router.get("/", validateJWT("access"), filterOwner(), (req, res) => this.find(req, res));
+    this.router.get("/", validateJWT("access"), filterOwner(), (req, res) =>
+      this.find(req, res),
+    );
     this.router.get("/:id", validateJWT("access"), filterOwner(), (req, res) =>
-      this.findOne(req, res)
+      this.findOne(req, res),
     );
     this.router.put(
       "/:id",
@@ -27,7 +28,7 @@ export class ProfileController extends Controller {
       stripNestedObjects(),
       filterOwner(),
       appendUser(),
-      (req, res) => this.update(req, res)
+      (req, res) => this.update(req, res),
     );
 
     return this.router;

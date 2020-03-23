@@ -1,6 +1,6 @@
 import { Sequelize, SequelizeOptions } from "sequelize-typescript";
 import { Op } from "sequelize";
-import { config } from "./config/config";
+import { config } from "@/config/config";
 import * as path from "path";
 
 const dbOptions: SequelizeOptions = {
@@ -8,7 +8,7 @@ const dbOptions: SequelizeOptions = {
   modelPaths: [path.join(__dirname, "/models")],
   define: {
     freezeTableName: true,
-    timestamps: true
+    timestamps: true,
   },
   operatorsAliases: {
     $eq: Op.eq,
@@ -44,8 +44,8 @@ const dbOptions: SequelizeOptions = {
     $any: Op.any,
     $all: Op.all,
     $values: Op.values,
-    $col: Op.col
-  }
+    $col: Op.col,
+  },
 };
 
 export const db = new Sequelize(dbOptions);
@@ -63,7 +63,7 @@ export function printDBCreateSQL(): Promise<any> {
         data = data.replace("Executing (default): ", "");
         if (data.indexOf("SHOW INDEX FROM") != -1) return;
         console.log(data);
-      }
-    })
+      },
+    }),
   );
 }

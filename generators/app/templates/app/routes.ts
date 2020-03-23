@@ -1,13 +1,14 @@
-import { Application, static as Static, Request, Response } from "express";
+import { Application, static as Static } from "express";
 import * as path from "path";
-import { log } from "./libraries/Log";
-import { config } from "./config/config";
+import { log } from "@/libraries/Log";
 
 const importedCtrls1 = require("require-dir-all")("controllers/v1");
-const controllers1 = Object.keys(importedCtrls1).map(k => importedCtrls1[k].default);
+const controllers1 = Object.keys(importedCtrls1).map(
+  k => importedCtrls1[k].default,
+);
 
 export function routes(app: Application) {
-  for (let controller of controllers1) {
+  for (const controller of controllers1) {
     if (controller.name == null || controller.name.length === 0) {
       log.error("Invalid controller name:", controller.name, controller);
       continue;
@@ -17,7 +18,20 @@ export function routes(app: Application) {
 
   app.use(Static(path.join(__dirname, "../public")));
 
-  // // All undefined asset or api routes should return a 404
-  // app.route('/:url(api|auth|components|app|bower_components|assets)/*')
-  //  .get(errors[404]);
+  // Not Found Handler
+  app.use((req, res) => {
+    res.status(404);
+
+    if (req.accepts("html")) {
+      res.render("404");
+      return;
+    }
+
+    if (req.accepts("json")) {
+      res.send({ error: "Not Found" });
+      return;
+    }
+
+    res.type("txt").send("Not Found");
+  });
 }

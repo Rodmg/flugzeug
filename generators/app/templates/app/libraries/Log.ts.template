@@ -2,7 +2,7 @@ import * as winston from "winston";
 import * as SegfaultHandler from "segfault-handler";
 import * as fs from "fs";
 import * as path from "path";
-import { config } from "./../config/config";
+import { config } from "@/config/config";
 
 export const log = new winston.Logger();
 export const requestLog = new winston.Logger();
@@ -19,7 +19,7 @@ SegfaultHandler.registerHandler(path.join(logDir, "<%- name %>-segfault.log"));
 log.add(winston.transports.Console, {
   level: config.log.level,
   colorize: true,
-  timestamp: true
+  timestamp: true,
 });
 
 // A file based transport logging only errors formatted as json.
@@ -27,38 +27,38 @@ log.add(winston.transports.File, {
   name: "error-file",
   level: "error",
   filename: path.join(logDir, "<%- name %>-error.log"),
-  json: true
+  json: true,
 });
 
 log.add(winston.transports.File, {
   name: "warn-file",
   level: "warn",
   filename: path.join(logDir, "<%- name %>-warn.log"),
-  json: true
+  json: true,
 });
 
 log.add(winston.transports.File, {
   name: "debug-file",
   level: "debug",
   filename: path.join(logDir, "<%- name %>-debug.log"),
-  json: true
+  json: true,
 });
 
 requestLog.add(winston.transports.Console, {
   level: config.log.level,
   colorize: true,
-  timestamp: true
+  timestamp: true,
 });
 
 requestLog.add(winston.transports.File, {
   name: "request-file",
   level: "info",
   filename: path.join(logDir, "<%- name %>-requests.log"),
-  json: true
+  json: true,
 });
 
 export const requestLogStream: any = {
-  write: function(message, encoding) {
+  write: function(message) {
     requestLog.info(message.trim());
-  }
+  },
 };

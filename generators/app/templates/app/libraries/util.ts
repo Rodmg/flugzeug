@@ -10,7 +10,7 @@ export const months = [
   { name: "September", val: 9 },
   { name: "October", val: 10 },
   { name: "November", val: 11 },
-  { name: "December", val: 12 }
+  { name: "December", val: 12 },
 ];
 
 export const weekdays = [
@@ -20,7 +20,7 @@ export const weekdays = [
   { name: "Wednesday", val: 3 },
   { name: "Thursday", val: 4 },
   { name: "Friday", val: 5 },
-  { name: "Saturday", val: 6 }
+  { name: "Saturday", val: 6 },
 ];
 
 export const colors = ["red", "purple", "blue", "light-blue", "orange"];
@@ -34,6 +34,6 @@ export function numToMonth(n) {
 }
 
 export function getRandomColor() {
-  let index = Math.floor(Math.random() * colors.length);
+  const index = Math.floor(Math.random() * colors.length);
   return colors[index];
 }

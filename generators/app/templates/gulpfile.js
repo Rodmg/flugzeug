@@ -5,6 +5,7 @@ const del = require("del");
 const sourcemaps = require("gulp-sourcemaps");
 const spawn = require("child_process").spawn;
 const shell = require("gulp-shell");
+const tsAlias = require("gulp-ts-alias");
 const tsProject = tsc.createProject("tsconfig.json");
 
 // Node process
@@ -14,7 +15,7 @@ let node = null;
 function execute(params) {
   if (node) node.kill();
   node = spawn("node", params, {
-    stdio: "inherit"
+    stdio: "inherit",
   });
   node.on("close", function(code) {
     if (code === 8) {
@@ -39,6 +40,7 @@ function copyLocales() {
 function compile() {
   const tsResult = gulp
     .src(["app/**/*.ts"])
+    .pipe(tsAlias({ configuration: tsProject.config }))
     .pipe(sourcemaps.init())
     .pipe(tsProject());
   return tsResult.js
@@ -46,20 +48,27 @@ function compile() {
       sourcemaps.write(".", {
         sourceRoot: function(file) {
           return file.cwd + "/app";
-        }
-      })
+        },
+      }),
     )
     .pipe(gulp.dest("dist"));
 }
 
-const build = gulp.series(clean, compile, copyViews, copyLocales);
+const build = gulp.series(
+  clean,
+  gulp.parallel(compile, copyViews, copyLocales),
+);
 
 function doServe() {
   return execute(["--require", "source-map-support/register", "dist/main.js"]);
 }
 const serve = gulp.series(compile, doServe);
 
-const cleanServe = gulp.series(clean, copyViews, copyLocales, serve);
+const cleanServe = gulp.series(
+  clean,
+  gulp.parallel(copyViews, copyLocales),
+  serve,
+);
 
 // first time cleans and compiles, subsecuent times only compiles
 function doWatch() {
@@ -68,7 +77,11 @@ function doWatch() {
 const watch = gulp.series(cleanServe, doWatch);
 
 function doSql() {
-  return execute(["--require", "source-map-support/register", "dist/dumpDbCreate.js"]);
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/dumpDbCreate.js",
+  ]);
 }
 const sql = gulp.series(compile, doSql);
 
@@ -96,5 +109,5 @@ module.exports = {
   seed,
   test,
   production,
-  default: production
+  default: production,
 };
