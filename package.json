@@ -1,6 +1,6 @@
 {
   "name": "generator-flugzeug",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Flugzeug Framework",
   "homepage": "http://rodrigomendez.me",
   "author": {
@@ -25,17 +25,17 @@
     "yeoman-generator"
   ],
   "devDependencies": {
-    "yeoman-test": "^1.6.0",
-    "yeoman-assert": "^3.0.0",
     "eslint": "^4.1.0",
-    "prettier": "^1.7.0",
-    "husky": "^0.14.3",
-    "lint-staged": "^4.2.1",
     "eslint-config-prettier": "^2.4.0",
-    "eslint-plugin-prettier": "^2.2.0",
     "eslint-config-xo": "^0.18.2",
-    "jest": "^24.8.0",
-    "jest-cli": "^24.8.0"
+    "eslint-plugin-prettier": "^2.2.0",
+    "husky": "^0.14.3",
+    "jest": "^25.1.0",
+    "jest-cli": "^25.1.0",
+    "lint-staged": "^4.2.1",
+    "prettier": "^1.7.0",
+    "yeoman-assert": "^3.0.0",
+    "yeoman-test": "^1.6.0"
   },
   "dependencies": {
     "base64-url": "^2.0.0",
@@ -92,7 +92,7 @@
     "url": "https://github.com/Rodmg/flugzeug"
   },
   "engines": {
-    "node": ">=6.5.0"
+    "node": ">=10.16.0"
   },
   "preferGlobal": true,
   "license": "MIT"

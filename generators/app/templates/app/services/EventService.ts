@@ -3,9 +3,8 @@
     Manages events.
  */
 
-import { log } from "./../libraries/Log";
 import { EventEmitter } from "events";
-import { db } from "./../db";
+import { db } from "@/db";
 
 class EventService extends EventEmitter {
   constructor() {
@@ -14,11 +13,11 @@ class EventService extends EventEmitter {
 
   init() {
     // Setup model change events
-    db.addHook("afterUpdate", (instance: any, options: any) => {
-      let changed = instance._changed;
-      let changes = {};
+    db.addHook("afterUpdate", (instance: any, _options: any) => {
+      const changed = instance._changed;
+      const changes = {};
 
-      for (let k in changed) {
+      for (const k in changed) {
         if (changed.hasOwnProperty(k)) {
           changes[k] = instance[k];
         }
@@ -28,13 +27,13 @@ class EventService extends EventEmitter {
         this.emit(`db/update/${instance.userId}`, {
           model: instance._modelOptions.name.singular,
           id: instance.id,
-          changed: changes
+          changed: changes,
         });
         this.emit(`db/change/${instance.userId}`, {
           event: "update",
           model: instance._modelOptions.name.singular,
           id: instance.id,
-          changed: changes
+          changed: changes,
         });
       }
     });
@@ -44,30 +43,30 @@ class EventService extends EventEmitter {
     //   console.log('DB event BulkUpd:', instance);
     // });
 
-    db.addHook("afterDestroy", (instance: any, options: any) => {
+    db.addHook("afterDestroy", (instance: any, _options: any) => {
       if (instance.userId) {
         this.emit(`db/destroy/${instance.userId}`, {
           model: instance._modelOptions.name.singular,
-          id: instance.id
+          id: instance.id,
         });
         this.emit(`db/change/${instance.userId}`, {
           event: "destroy",
           model: instance._modelOptions.name.singular,
-          id: instance.id
+          id: instance.id,
         });
       }
     });
 
-    db.addHook("afterCreate", (instance: any, options: any) => {
+    db.addHook("afterCreate", (instance: any, _options: any) => {
       if (instance.userId) {
         this.emit(`db/create/${instance.userId}`, {
           model: instance._modelOptions.name.singular,
-          id: instance.id
+          id: instance.id,
         });
         this.emit(`db/change/${instance.userId}`, {
           event: "create",
           model: instance._modelOptions.name.singular,
-          id: instance.id
+          id: instance.id,
         });
       }
     });

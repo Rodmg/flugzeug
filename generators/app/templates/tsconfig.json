@@ -10,7 +10,11 @@
     "rootDir": "app",
     "outDir": "dist",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["app/*"]
+    }
   },
   "include": ["app/**/*.ts"],
   "exclude": ["node_modules"]

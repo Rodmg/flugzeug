@@ -3,28 +3,25 @@ import {
   Column,
   HasOne,
   DataType,
-  BelongsTo,
   BeforeBulkCreate,
   BeforeCreate,
   AfterCreate,
   BeforeUpdate,
   BeforeBulkUpdate,
-  ForeignKey,
   BeforeDestroy,
-  HasMany
 } from "sequelize-typescript";
-import { BaseModel } from "../libraries/BaseModel";
+import { BaseModel } from "@/libraries/BaseModel";
 import { Profile } from "./Profile";
 import * as bcrypt from "bcrypt";
 
 @Table({
-  tableName: "user"
+  tableName: "user",
 })
 export class User extends BaseModel<User> {
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
   name: string;
 
@@ -33,8 +30,8 @@ export class User extends BaseModel<User> {
     allowNull: false,
     unique: true,
     validate: {
-      isEmail: true
-    }
+      isEmail: true,
+    },
   })
   email: string;
 
@@ -43,22 +40,22 @@ export class User extends BaseModel<User> {
     allowNull: false,
     validate: {
       isLength: {
-        min: 8
-      }
-    }
+        min: 8,
+      },
+    },
   })
   password: string;
 
   @Column({
     type: DataType.ENUM("user", "admin"),
     allowNull: false,
-    defaultValue: "user"
+    defaultValue: "user",
   })
   role: "user" | "admin";
 
   @HasOne(() => Profile, {
     hooks: true,
-    onDelete: "CASCADE"
+    onDelete: "CASCADE",
   })
   profile: Profile;
 
@@ -69,17 +66,17 @@ export class User extends BaseModel<User> {
   }
 
   @BeforeCreate
-  static addPassword(user: User, options: any) {
+  static addPassword(user: User, _options: any) {
     return user.updatePassword();
   }
 
   @AfterCreate
-  static createProfile(user: User, options: any) {
+  static createProfile(user: User, _options: any) {
     return user.addProfile();
   }
 
   @BeforeUpdate
-  static changePassword(user: User, options: any) {
+  static changePassword(user: User, _options: any) {
     if (user.changed("password")) {
       return user.updatePassword();
     }
@@ -87,7 +84,7 @@ export class User extends BaseModel<User> {
   }
 
   @BeforeDestroy
-  static deleteChilds(user: User, options: any) {
+  static deleteChilds(user: User, _options: any) {
     return Promise.all([Profile.destroy({ where: { userId: user.id } })]);
   }
 
@@ -96,7 +93,8 @@ export class User extends BaseModel<User> {
   }
 
   hashPassword(password: string): Promise<string> {
-    if (password == null || password.length < 8) throw new Error("Invalid password");
+    if (password == null || password.length < 8)
+      throw new Error("Invalid password");
     return bcrypt.hash(password, 10);
   }
 
@@ -112,15 +110,15 @@ export class User extends BaseModel<User> {
       Profile.create({
         time_zone: "America/Mexico_City",
         userId: this.id,
-        locale: "es" // Defaults, this should be changed in auth controller on register.
-      }).then(result => {
+        locale: "es", // Defaults, this should be changed in auth controller on register.
+      }).then(() => {
         return null;
-      })
+      }),
     );
   }
 
   toJSON() {
-    let object: any = super.toJSON();
+    const object: any = super.toJSON();
     delete object.role;
     delete object.password;
     delete object.createdAt;

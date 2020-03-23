@@ -1,8 +1,8 @@
 import { Model } from "sequelize-typescript";
 import { Request, Response, Router } from "express";
 import { log } from "./Log";
-import { db } from "./../db";
-import { config } from "./../config/config";
+import { db } from "@/db";
+import { config } from "@/config/config";
 import * as _ from "lodash";
 
 export class Controller {
@@ -130,14 +130,14 @@ export class Controller {
   }
 
   protected parseLimit(req: Request): number {
-    let limit = req.query.limit || config.api.limit;
-    let result: number = +limit;
+    const limit = req.query.limit || config.api.limit;
+    const result: number = +limit;
     return result;
   }
 
   protected parseOffset(req: Request): number {
-    let skip = req.query.offset || req.query.skip || config.api.offset;
-    let result: number = +skip;
+    const skip = req.query.offset || req.query.skip || config.api.offset;
+    const result: number = +skip;
     return result;
   }
 
@@ -157,10 +157,11 @@ export class Controller {
         // (e.g. "name ASC")
         // Put it in array form for avoiding errors with reserved words
         try {
-          let parts: Array<string> = sort.split(" ");
-          let colName: string = parts[0];
-          let orderParam: string = parts[1];
-          if (orderParam !== "ASC" && orderParam !== "DESC") throw new Error("invalid query");
+          const parts: Array<string> = sort.split(" ");
+          const colName: string = parts[0];
+          const orderParam: string = parts[1];
+          if (orderParam !== "ASC" && orderParam !== "DESC")
+            throw new Error("invalid query");
           sort = [[colName, orderParam]];
         } catch (e) {
           // Invalid string
@@ -173,7 +174,7 @@ export class Controller {
 
   protected parseInclude(req: Request): Array<any> {
     let include: Array<any> = [];
-    let populate: any = req.query.include || req.query.populate;
+    const populate: any = req.query.include || req.query.populate;
 
     if (_.isString(populate)) {
       include = JSON.parse(populate);
@@ -181,10 +182,9 @@ export class Controller {
 
     const tryWithFilter = (m: string) => {
       if (m.includes(".")) {
-        let splt = m.split("."),
+        const splt = m.split("."),
           modelName = splt[0],
-          filterName = splt[1],
-          filter = {};
+          filterName = splt[1];
 
         const model = this.getModelFromList(modelName);
 
@@ -201,10 +201,10 @@ export class Controller {
       if (_.isString(item)) {
         return tryWithFilter(item);
       } else {
-        let model: string = Object.keys(item)[0];
-        let content = item[model];
+        const model: string = Object.keys(item)[0];
+        const content = item[model];
 
-        let result: any = tryWithFilter(model);
+        const result: any = tryWithFilter(model);
         result.include = content.map(i => parseIncludeRecursive(i));
 
         return result;
@@ -267,8 +267,9 @@ export class Controller {
   }
 
   create(req: Request, res: Response) {
-    let values: any = req.body;
-    if (!_.isObject(values)) return Controller.serverError(res, new Error("Invalid data in body"));
+    const values: any = req.body;
+    if (!_.isObject(values))
+      return Controller.serverError(res, new Error("Invalid data in body"));
     this.model
       .create(values)
       .then(result => {
@@ -282,11 +283,11 @@ export class Controller {
 
   destroy(req: Request, res: Response) {
     // For applying constraints (usefull with policies)
-    let where = this.parseWhere(req);
+    const where = this.parseWhere(req);
     where.id = req.params.id;
     this.model
       .findOne({
-        where: where
+        where: where,
       })
       .then(result => {
         if (!result) {
@@ -311,7 +312,7 @@ export class Controller {
         limit: this.parseLimit(req),
         offset: this.parseOffset(req),
         order: this.parseOrder(req),
-        include: this.parseInclude(req)
+        include: this.parseInclude(req),
       })
       .then(result => {
         res.set("Content-Count", String(result.count));
@@ -325,12 +326,12 @@ export class Controller {
 
   findOne(req: Request, res: Response) {
     // For applying constraints (usefull with policies)
-    let where = this.parseWhere(req);
+    const where = this.parseWhere(req);
     where.id = req.params.id;
     this.model
       .findOne({
         where: where,
-        include: this.parseInclude(req)
+        include: this.parseInclude(req),
       })
       .then(result => {
         if (!result) res.status(404).end();
@@ -343,20 +344,21 @@ export class Controller {
   }
 
   update(req: Request, res: Response) {
-    let id = req.params.id;
+    const id = req.params.id;
     // Get values
-    let values: any = req.body;
-    if (!_.isObject(values)) return Controller.serverError(res, new Error("Invalid data in body"));
+    const values: any = req.body;
+    if (!_.isObject(values))
+      return Controller.serverError(res, new Error("Invalid data in body"));
     // Make sure id is not changed in the values to update
-    values.id = id;
+    (values as any).id = id;
     // For applying constraints (usefull with policies)
-    let where = this.parseWhere(req);
+    const where = this.parseWhere(req);
     where.id = id;
     // Update
     this.model
       .findOne({
         where: where,
-        include: this.parseInclude(req)
+        include: this.parseInclude(req),
       })
       .then(result => {
         if (!result) {

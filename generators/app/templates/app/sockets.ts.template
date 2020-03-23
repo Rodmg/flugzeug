@@ -1,11 +1,9 @@
 import * as Socketio from "socket.io";
 import * as _ from "lodash";
-import { server } from "./server";
-import { default as auth } from "./controllers/v1/Auth";
-import { Request, Response } from "express-serve-static-core";
-import { db } from "./db";
-import EventService from "./services/EventService";
-import { log } from "./libraries/Log";
+import { server } from "@/server";
+import { default as auth } from "@/controllers/v1/Auth";
+import EventService from "@/services/EventService";
+import { log } from "@/libraries/Log";
 
 // Initialize websockets
 export const io = Socketio();
@@ -16,7 +14,7 @@ export function setupSockets(): Promise<any> {
 
   // Auth middleware for sockets
   io.use((socket, next) => {
-    let token = socket.handshake.query.token;
+    const token = socket.handshake.query.token;
 
     // Validate access JWT for auth
     if (token == null) return next(new Error("No Token Present"));
@@ -43,13 +41,13 @@ export function setupSockets(): Promise<any> {
     log.info(
       "Websocket connected, client:",
       socket.handshake.address,
-      socket.request.session.user.email
+      socket.request.session.user.email,
     );
 
     // Support for db change events
-    let userId = socket.request.session.user.id;
+    const userId = socket.request.session.user.id;
 
-    let dbChangeHandler = data => {
+    const dbChangeHandler = data => {
       socket.emit("change", data);
     };
 
@@ -61,7 +59,7 @@ export function setupSockets(): Promise<any> {
         socket.handshake.address,
         socket.request.session.user.email,
         "reason:",
-        reason
+        reason,
       );
       EventService.removeListener(`db/update/${userId}`, dbChangeHandler);
     });
