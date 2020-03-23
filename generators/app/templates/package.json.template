@@ -49,7 +49,7 @@
     "gulp-sourcemaps": "2.6.5",
     "gulp-ts-alias": "1.1.0",
     "gulp-typescript": "4.0.2",
-    "mocha": "5.2.0",
+    "mocha": "7.1.1",
     "prettier": "^1.19.1",
     "sqlite3": "4.1.1",
     "typescript": "3.7.3"
