@@ -142,7 +142,7 @@ export class Controller {
   }
 
   protected parseOrder(req: Request): any {
-    let sort = req.query.order || req.query.sort;
+    let sort: any = req.query.order || req.query.sort;
     if (_.isUndefined(sort)) {
       return undefined;
     }
