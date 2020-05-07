@@ -1,3 +1,21 @@
+# Flugzeug 1.3.0
+
+- Add option to chose SQLite or MySQL database on app generator
+- Standardize Prettier config for generator project
+
+# Flugzeug 1.2.1
+
+- Fix Typescript error on Controller.ts
+
+# Flugzeug 1.2.0
+
+- Fix building in node v12
+- Updated dependencies
+- Standardized linting and formatting rules
+- Initialize git repo for newly generated project
+- Added support for "@/" syntax on imports, for importing from the root of the project (app folder)
+- Add new default 404 error view
+
 # Flugzeug 1.1.0
 
 On Saturday, August 3, Flugzeug was updated to update dependencies that had reported vulnerabilities.
