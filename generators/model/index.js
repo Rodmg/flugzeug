@@ -12,16 +12,19 @@ module.exports = class extends Generator {
     this.argument("name", {
       type: String,
       required: false,
-      description: "Your model name"
+      description: "Your model name",
     });
   }
 
   prompting() {
     if (!this.silent)
-      this.log("\nWelcome to the " + chalk.red("Flugzeug Model") + " generator\n");
+      this.log(
+        "\nWelcome to the " + chalk.red("Flugzeug Model") + " generator\n",
+      );
 
     // Set default model name to the name passed as arguments
-    let defaultModelName = this.opts.apiName == null ? "Thing" : this.opts.apiName;
+    let defaultModelName =
+      this.opts.apiName == null ? "Thing" : this.opts.apiName;
     if (this.options.name != null) {
       defaultModelName = changeCase.pascalCase(this.options.name);
     }
@@ -32,14 +35,14 @@ module.exports = class extends Generator {
         name: "modelName",
         message: "Model name:",
         default: defaultModelName,
-        filter: changeCase.pascalCase
+        filter: changeCase.pascalCase,
       },
       {
         type: "confirm",
         name: "belongsToUser",
         message: "Would you like your model to belong to User?",
-        default: true
-      }
+        default: true,
+      },
     ];
 
     return this.prompt(prompts).then(props => {
@@ -54,7 +57,7 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.templatePath("modelTemplate.ts"),
       this.destinationPath(`app/models/${this.props.modelName}.ts`),
-      this.props
+      this.props,
     );
   }
 };

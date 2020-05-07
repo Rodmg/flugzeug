@@ -51,7 +51,9 @@
     "gulp-typescript": "4.0.2",
     "mocha": "7.1.1",
     "prettier": "^1.19.1",
+<% if (dbtype === 'sqlite') { %>
     "sqlite3": "4.1.1",
+<% } %>
     "typescript": "3.7.3"
   },
   "dependencies": {
@@ -70,7 +72,9 @@
     "method-override": "3.0.0",
     "moment": "2.22.2",
     "morgan": "1.9.1",
+<% if (dbtype === 'mysql') { %>
     "mysql2": "1.6.1",
+<% } %>
     "node-cron": "1.2.1",
     "nodemailer": "4.6.7",
     "nodemailer-mailgun-transport": "1.4.0",

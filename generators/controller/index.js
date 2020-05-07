@@ -12,13 +12,15 @@ module.exports = class extends Generator {
     this.argument("name", {
       type: String,
       required: false,
-      description: "Your controller name"
+      description: "Your controller name",
     });
   }
 
   prompting() {
     if (!this.silent)
-      this.log("\nWelcome to the " + chalk.red("Flugzeug Controller") + " generator\n");
+      this.log(
+        "\nWelcome to the " + chalk.red("Flugzeug Controller") + " generator\n",
+      );
 
     // Set default controller name to the name passed as arguments if opts.modelName is not present
     if (this.opts.modelName == null && this.options.name != null) {
@@ -31,28 +33,30 @@ module.exports = class extends Generator {
         name: "controllerName",
         message: "Controller name:",
         default: this.opts.modelName == null ? "Thing" : this.opts.modelName,
-        filter: changeCase.pascalCase
+        filter: changeCase.pascalCase,
       },
       {
         type: "input",
         name: "modelName",
         message: "Model:",
         default: props => {
-          return this.opts.modelName == null ? props.controllerName : this.opts.modelName;
+          return this.opts.modelName == null
+            ? props.controllerName
+            : this.opts.modelName;
         },
-        when: this.opts.modelName == null
+        when: this.opts.modelName == null,
       },
       {
         type: "input",
         name: "apiVersion",
         message: "API Version:",
-        default: "v1"
+        default: "v1",
       },
       {
         type: "confirm",
         name: "needsAuth",
         message: "Needs authentication?",
-        default: true
+        default: true,
       },
       {
         type: "confirm",
@@ -63,14 +67,15 @@ module.exports = class extends Generator {
             ? props.needsAuth
             : this.opts.belongsToUser;
         },
-        when: this.opts.belongsToUser == null
-      }
+        when: this.opts.belongsToUser == null,
+      },
     ];
 
     return this.prompt(prompts).then(props => {
       this.props = props;
       this.props.pathName = props.controllerName.toLowerCase();
-      if (this.opts.modelName != null) this.props.modelName = this.opts.modelName;
+      if (this.opts.modelName != null)
+        this.props.modelName = this.opts.modelName;
       if (this.opts.belongsToUser != null)
         this.props.belongsToUser = this.opts.belongsToUser;
       // Copy props to opts to expose to other composed generators
@@ -82,9 +87,11 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.templatePath("controllerTemplate.ts"),
       this.destinationPath(
-        `app/controllers/${this.props.apiVersion}/${this.props.controllerName}.ts`
+        `app/controllers/${this.props.apiVersion}/${
+          this.props.controllerName
+        }.ts`,
       ),
-      this.props
+      this.props,
     );
   }
 };

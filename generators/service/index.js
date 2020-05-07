@@ -10,12 +10,14 @@ module.exports = class extends Generator {
     this.argument("name", {
       type: String,
       required: false,
-      description: "Your service name"
+      description: "Your service name",
     });
   }
 
   prompting() {
-    this.log("\nWelcome to the " + chalk.red("Flugzeug Service") + " generator\n");
+    this.log(
+      "\nWelcome to the " + chalk.red("Flugzeug Service") + " generator\n",
+    );
 
     // Set default service name to the name passed as arguments
     let defaultServiceName = "MyService";
@@ -29,8 +31,8 @@ module.exports = class extends Generator {
         name: "serviceName",
         message: "Service name:",
         default: defaultServiceName,
-        filter: changeCase.pascalCase
-      }
+        filter: changeCase.pascalCase,
+      },
     ];
 
     return this.prompt(prompts).then(props => {
@@ -43,7 +45,7 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.templatePath("serviceTemplate.ts"),
       this.destinationPath(`app/services/${this.props.serviceName}.ts`),
-      this.props
+      this.props,
     );
   }
 };

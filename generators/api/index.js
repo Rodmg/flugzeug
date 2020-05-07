@@ -9,7 +9,7 @@ module.exports = class extends Generator {
     this.argument("name", {
       type: String,
       required: false,
-      description: "Your api name"
+      description: "Your api name",
     });
   }
 

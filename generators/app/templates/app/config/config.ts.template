@@ -70,14 +70,14 @@ export const config: any = {
   },
 
   db: {
-    database: process.env.DB_NAME || "flugzeug-project",
+    database: process.env.DB_NAME || "<%- dbname %>",
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     host: "localhost",
-    dialect: "mysql",
+    dialect: process.env.DB_TYPE || "<%- dbtype %>",
     logging: false,
-    //storage: 'db.sqlite',
-    timezone: "utc", // IMPORTANT For correct timezone management with DB, Tasks etc.
+    storage: process.env.DB_STORAGE || "db.sqlite",
+    timezone: "utc", // IMPORTANT For correct timezone management with DB.
   },
 };
 
@@ -87,3 +87,8 @@ if (Number.isInteger(parseInt(config.urls.port)))
 
 config.urls.base = `${config.urls.protocol}://${config.urls.url}${portString}`;
 config.urls.baseApi = `${config.urls.base}${config.urls.apiRoot}`;
+
+if (config.db.dialect === "sqlite") {
+  // sqlite dialect doesn't support timezone and crashes if we pass one (it is utc by default anyway)
+  delete config.db.timezone;
+}
