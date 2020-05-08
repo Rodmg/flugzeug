@@ -1,3 +1,8 @@
+# Flugzeug 1.3.1
+
+- Fix "Deprecated operator aliases" message from Sequelize
+- Standardized and documented supported operators for `where` queries
+
 # Flugzeug 1.3.0
 
 - Add option to chose SQLite or MySQL database on app generator

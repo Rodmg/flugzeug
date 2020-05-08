@@ -3,7 +3,27 @@ import { Request, Response, Router } from "express";
 import { log } from "./Log";
 import { db } from "@/db";
 import { config } from "@/config/config";
+import { Op } from "sequelize";
 import * as _ from "lodash";
+
+const OPERATOR_ALIASES = {
+  $eq: Op.eq,
+  $ne: Op.ne,
+  $gte: Op.gte,
+  $gt: Op.gt,
+  $lte: Op.lte,
+  $lt: Op.lt,
+  $not: Op.not,
+  $in: Op.in,
+  $notIn: Op.notIn,
+  $is: Op.is,
+  $like: Op.like,
+  $notLike: Op.notLike,
+  $between: Op.between,
+  $notBetween: Op.notBetween,
+  $and: Op.and,
+  $or: Op.or,
+};
 
 export class Controller {
   protected model: typeof Model | any;
@@ -33,52 +53,16 @@ export class Controller {
     return this.router;
   }
 
-  // Sails query format retrocompatibility
-  protected parseWhereSails(where: any): any {
+  protected sanitizeWhere(where: any): any {
     function recursiveParse(obj: any) {
       _.each(obj, (val: any, key: any) => {
-        if (_.isObjectLike(val)) return recursiveParse(val);
-        if (_.isString(val) || _.isNumber(val)) {
-          if (key === "contains") {
-            obj["$like"] = `%${val}%`;
-            delete obj[key];
-          }
-          if (key === "startsWith") {
-            obj["$like"] = `${val}%`;
-            delete obj[key];
-          }
-          if (key === "endsWith") {
-            obj["$like"] = `%${val}`;
-            delete obj[key];
-          }
-          if (key === "!") {
-            obj["$not"] = val;
-            delete obj[key];
-          }
-          if (key === "or") {
-            obj["$or"] = val;
-            delete obj[key];
-          }
-          if (key === "<") {
-            obj["$lt"] = val;
-            delete obj[key];
-          }
-          if (key === "<=") {
-            obj["$lte"] = val;
-            delete obj[key];
-          }
-          if (key === ">") {
-            obj["$gt"] = val;
-            delete obj[key];
-          }
-          if (key === ">=") {
-            obj["$gte"] = val;
-            delete obj[key];
-          }
-          if (key === "like") {
-            obj["$like"] = val;
-            delete obj[key];
-          }
+        if (OPERATOR_ALIASES.hasOwnProperty(key)) {
+          obj[OPERATOR_ALIASES[key]] = val;
+          delete obj[key];
+        }
+
+        if (_.isObjectLike(val)) {
+          val = recursiveParse(val);
         }
       });
     }
@@ -119,11 +103,7 @@ export class Controller {
     if (req.session == null) req.session = {};
     where = _.merge(where, req.session.where || {});
 
-    where = this.parseWhereSails(where);
-
-    // Check `WHERE` clause for unsupported usage.
-    // (throws if bad structure is detected)
-    //validateWhereClauseStrict(where);
+    where = this.sanitizeWhere(where);
 
     // Return final `where`.
     return where;
@@ -255,7 +235,6 @@ export class Controller {
   }
 
   public static serverError(res: Response, data?: any) {
-    // TODO: consideer option for sending err on debug mode
     log.error(data);
     res.status(500).send("Internal Server Error");
   }
