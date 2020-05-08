@@ -51,23 +51,30 @@ Models and associations will be automatically loaded on app startup, it is only 
 Example:
 
 ```js
-import { Table, Column, DataType, BelongsTo, Model, ForeignKey } from "sequelize-typescript";
+import {
+  Table,
+  Column,
+  DataType,
+  BelongsTo,
+  Model,
+  ForeignKey,
+} from "sequelize-typescript";
 import { User } from "./User";
 
 @Table({
-  tableName: "profile"
+  tableName: "profile",
 })
 export class Profile extends Model<Profile> {
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: null
+    defaultValue: null,
   })
   timeZone: string;
 
   @Column({
     type: DataType.ENUM("en", "es"),
-    allowNull: true
+    allowNull: true,
   })
   locale: "en" | "es";
 
@@ -138,10 +145,10 @@ export default controller;
 
 #### Query params
 
-- **where**: Accepts JSON following Sequelize's query format
+- **where**: Accepts JSON following a modified Sequelize query format. More details in the **Where query format** section.
 - **limit**: number, max number of results to get
 - **offset** | **skip**: number, offset for the results to get, useful for pagination
-- **order** | **sort**: string or an Array of Arrays, specifying ordering for the results, format: `<column name> <ASC | DESC>` or `[["<column name>", "<ASC | DESC>"], ...]`
+- **order** | **sort**: string or an Array of Arrays, specifying ordering for the results, format: `[["<column name>", "<ASC | DESC>"], ...]`
 - **include**: JSON(Array< Object | string >): Specify the relations to populate, the members of the array can be strings with the name of the model to populate, the name with a dot and a filter name, or a object with a key of the same format as before that denotes an array with the same format of the parent one (recursive). Example:
 
   ```
@@ -153,3 +160,33 @@ export default controller;
 ```
 GET http://example.com/api/v1/user?where={"name":{"$like":"Alfred"}}&limit=10&offset=20&include=["Profile"]&order=[["lastName", "ASC"]]
 ```
+
+#### Where query format
+
+Flugzeug query format is based on the Sequelize query format, but limited and adapted for security.
+
+The contents of the `where` query param should be a JSON where the keys are either:
+
+- The name of the parameter that we want to query in the Model, or
+- One of the following supported operators:
+
+  | Operator     | Sequelize equivalent |
+  | ------------ | -------------------- |
+  | \$eq         | Op.eq                |
+  | \$ne         | Op.ne                |
+  | \$gte        | Op.gte               |
+  | \$gt         | Op.gt                |
+  | \$lte        | Op.lte               |
+  | \$lt         | Op.lt                |
+  | \$not        | Op.not               |
+  | \$in         | Op.in                |
+  | \$notIn      | Op.notIn             |
+  | \$is         | Op.is                |
+  | \$like       | Op.like              |
+  | \$notLike    | Op.notLike           |
+  | \$between    | Op.between           |
+  | \$notBetween | Op.notBetween        |
+  | \$and        | Op.and               |
+  | \$or         | Op.or                |
+
+You can get more details on how to write queries in the [Sequelize Querying documentation](https://sequelize.org/v5/manual/querying.html).
