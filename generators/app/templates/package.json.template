@@ -1,6 +1,7 @@
 {
   "name": "<%- name %>",
   "version": "1.0.0",
+  "flugzeugVersion": "<%- flugzeugVersion %>",
   "description": "Flugzeug project",
   "private": true,
   "main": "dist/main.js",
@@ -19,18 +20,18 @@
   "devDependencies": {
     "@types/bcrypt": "3.0.0",
     "@types/bluebird": "3.5.29",
-    "@types/body-parser": "1.17.1",
+    "@types/body-parser": "1.19.0",
     "@types/compression": "0.0.36",
     "@types/ejs": "2.6.0",
-    "@types/express": "4.16.0",
+    "@types/express": "4.17.8",
     "@types/helmet": "0.0.38",
-    "@types/i18n": "0.8.3",
+    "@types/i18n": "0.8.7",
     "@types/ip": "0.0.31",
     "@types/jsonwebtoken": "7.2.8",
-    "@types/lodash": "4.14.149",
+    "@types/lodash": "4.14.161",
     "@types/method-override": "0.0.31",
     "@types/morgan": "1.7.35",
-    "@types/node": "12.12.21",
+    "@types/node": "12.12.62",
     "@types/nodemailer": "4.6.2",
     "@types/serve-favicon": "2.2.30",
     "@types/socket.io": "1.4.36",
@@ -51,27 +52,27 @@
     "gulp-typescript": "4.0.2",
     "mocha": "7.1.1",
     "prettier": "^1.19.1",
-<% if (dbtype === 'sqlite') { %>
-    "sqlite3": "4.1.1",
-<% } %>
-    "typescript": "3.7.3"
+    "typescript": "4.0.3"
   },
   "dependencies": {
     "base64-url": "2.3.2",
-    "bcrypt": "3.0.7",
+    "bcrypt": "5.0.0",
     "body-parser": "1.19.0",
     "compression": "1.7.4",
     "dotenv": "6.0.0",
     "ejs": "2.6.1",
-    "express": "4.16.3",
+    "express": "4.17.1",
     "helmet": "3.21.2",
-    "i18n": "0.8.4",
+    "i18n": "0.13.2",
     "ip": "1.1.5",
     "jsonwebtoken": "8.3.0",
-    "lodash": "4.17.15",
+    "lodash": "4.17.20",
     "method-override": "3.0.0",
     "moment": "2.22.2",
     "morgan": "1.9.1",
+<% if (dbtype === 'sqlite') { %>
+    "sqlite3": "4.1.1",
+<% } %>
 <% if (dbtype === 'mysql') { %>
     "mysql2": "1.6.1",
 <% } %>
