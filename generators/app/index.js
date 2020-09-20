@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const path = require("path");
 const mkdirp = require("mkdirp");
 const _ = require("lodash");
+const pjson = require("./../../package.json");
 
 const logo = `                                 
   _____ _                         
@@ -14,6 +15,7 @@ const logo = `
  |   __| | | | . |- _| -_| | | . |
  |__|  |_|___|_  |___|___|___|_  |
              |___|           |___|
+ v${pjson.version}
 `;
 
 module.exports = class extends Generator {
@@ -138,6 +140,7 @@ module.exports = class extends Generator {
       this.destinationPath("package.json"),
       {
         name: this.props.name,
+        flugzeugVersion: pjson.version,
         author: this.props.author,
         useWebsockets: this.props.websockets,
         dbtype: this.props.dbtype,
