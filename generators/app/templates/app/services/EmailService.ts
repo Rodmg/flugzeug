@@ -1,6 +1,5 @@
 import * as path from "path";
 import * as nodemailer from "nodemailer";
-import * as mailgunTransport from "nodemailer-mailgun-transport";
 import * as ejs from "ejs";
 import { log } from "@/libraries/Log";
 import { config } from "@/config/config";
@@ -10,7 +9,13 @@ class EmailService {
   mailer: nodemailer.Transporter;
 
   constructor() {
-    this.mailer = nodemailer.createTransport(mailgunTransport(config.email));
+    this.mailer = nodemailer.createTransport({
+      pool: true,
+      host: config.email.host,
+      port: config.email.port,
+      secure: config.email.secure,
+      auth: config.email.auth,
+    });
   }
 
   private send(email: string, subject: string, html: string): Promise<any> {
