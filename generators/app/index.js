@@ -99,9 +99,7 @@ module.exports = class extends Generator {
   default() {
     if (path.basename(this.destinationPath()) !== this.props.name) {
       this.log(
-        `Your project must be inside a folder named ${
-          this.props.name
-        }\nI'll automatically create this folder.`,
+        `Your project must be inside a folder named ${this.props.name}\nI'll automatically create this folder.`,
       );
       mkdirp(this.props.name);
       this.destinationRoot(this.destinationPath(this.props.name));
@@ -174,8 +172,8 @@ module.exports = class extends Generator {
     this._generateJwtSecret()
       .then(secret => {
         this.fs.copyTpl(
-          this.templatePath("app/config/config.ts.template"),
-          this.destinationPath("app/config/config.ts"),
+          this.templatePath("app/config/index.ts.template"),
+          this.destinationPath("app/config/index.ts"),
           {
             dbtype: this.props.dbtype,
             dbname: this.props.dbname,

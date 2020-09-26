@@ -1,3 +1,30 @@
+# Flugzeug 2.0.0-alpha1
+
+- Removed mailgun support for EmailService in favor of generic SMTP configuration
+- Refactored Controller, added ModelController
+- Retired segfault-handler
+- Removed unused dependencies
+- Code cleanup
+- Added .env option to toggle logging to files
+
+**Breaking Changes:**
+
+- Mailgin support was removed by default (you can still add it manually if you need it by editing `services/EmailService.ts`)
+- Controller was refactored, now it is just a basic Controller structure with utility functions for responses, etc.
+- All CRUD default functionality was extracted to ModelController, wich extends Controller
+- ModelController CRUD functionality was refactored to make it more easily extensible, default handler functions changed name as follows:
+  - find -> handleFindAll
+  - findOne -> handleFindOne
+  - create -> handleCreate
+  - update -> handleUpdate
+  - delete -> handleDelete
+- Also, utility functions in ModelController, like parseWhere, parseLimit, parseOrder, etc, where extracted as exported functions, they are no longer part of the class.
+
+# Flugzeug 1.3.2
+
+- Added "flugzeugVersion" to package.json in generated apps.
+- Updated dependencies and fixed audit issues
+
 # Flugzeug 1.3.1
 
 - Fix "Deprecated operator aliases" message from Sequelize

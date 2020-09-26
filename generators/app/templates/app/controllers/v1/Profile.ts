@@ -1,4 +1,4 @@
-import { Controller } from "@/libraries/Controller";
+import { ModelController } from "@/libraries/ModelController";
 import { Profile } from "@/models/Profile";
 import { Router } from "express";
 import {
@@ -8,7 +8,7 @@ import {
   stripNestedObjects,
 } from "@/policies/General";
 
-export class ProfileController extends Controller {
+export class ProfileController extends ModelController<Profile> {
   constructor() {
     super();
     this.name = "profile";
@@ -17,10 +17,10 @@ export class ProfileController extends Controller {
 
   routes(): Router {
     this.router.get("/", validateJWT("access"), filterOwner(), (req, res) =>
-      this.find(req, res),
+      this.handleFindAll(req, res),
     );
     this.router.get("/:id", validateJWT("access"), filterOwner(), (req, res) =>
-      this.findOne(req, res),
+      this.handleFindOne(req, res),
     );
     this.router.put(
       "/:id",
@@ -28,7 +28,7 @@ export class ProfileController extends Controller {
       stripNestedObjects(),
       filterOwner(),
       appendUser(),
-      (req, res) => this.update(req, res),
+      (req, res) => this.handleUpdate(req, res),
     );
 
     return this.router;

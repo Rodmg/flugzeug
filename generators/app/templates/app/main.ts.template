@@ -10,15 +10,18 @@ import { setupSockets } from "@/sockets";
 <% } %>
 process.env.TZ = "UTC"; // IMPORTANT For correct timezone management with DB, Tasks etc.
 
-setupDB()
-  .then(() => {
+async function main(): Promise<void> {
+  try {
+    await setupDB();
     JanitorService.init();
     EventService.init();
-    <% if (useWebsockets) { %>
+<% if (useWebsockets) { %>
     setupSockets();
-    <% } %>
+<% } %>
     setupServer();
-  })
-  .catch(err => {
+  } catch (err) {
     log.error(err);
-  });
+  }
+}
+
+main();

@@ -106,15 +106,13 @@ export class User extends BaseModel<User> {
   }
 
   addProfile(): Promise<void> {
-    return Promise.resolve(
-      Profile.create({
-        time_zone: "America/Mexico_City",
-        userId: this.id,
-        locale: "es", // Defaults, this should be changed in auth controller on register.
-      }).then(() => {
-        return null;
-      }),
-    );
+    return Profile.create({
+      time_zone: "America/Mexico_City",
+      userId: this.id,
+      locale: "es", // Defaults, this should be changed in auth controller on register.
+    }).then(() => {
+      return null;
+    });
   }
 
   toJSON() {

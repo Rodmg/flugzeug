@@ -4,7 +4,7 @@ import { Profile } from "@/models/Profile";
 import { JWTBlacklist } from "@/models/JWTBlacklist";
 import { Request, Response, Router } from "express";
 import { log } from "@/libraries/Log";
-import { config } from "@/config/config";
+import { config } from "@/config";
 import { validateJWT } from "@/policies/General";
 import mailer from "@/services/EmailService";
 import * as _ from "lodash";
@@ -118,32 +118,30 @@ export class AuthController extends Controller {
   }
 
   private handleResetEmail(email: string): Promise<any> {
-    return Promise.resolve(
-      User.findOne({
-        where: { email: email },
-        include: [{ model: Profile, as: "profile" }],
+    return User.findOne({
+      where: { email: email },
+      include: [{ model: Profile, as: "profile" }],
+    })
+      .then(user => {
+        if (!user) {
+          throw { error: "notFound", msg: "Email not found" };
+        }
+        // Create reset token
+        const token = this.createToken(user, "reset");
+        return {
+          token: token.token,
+          email: email,
+          name: user.name,
+          user: user,
+        };
       })
-        .then(user => {
-          if (!user) {
-            throw { error: "notFound", msg: "Email not found" };
-          }
-          // Create reset token
-          const token = this.createToken(user, "reset");
-          return {
-            token: token.token,
-            email: email,
-            name: user.name,
-            user: user,
-          };
-        })
-        .then(emailInfo => {
-          return this.sendEmailNewPassword(
-            emailInfo.user,
-            emailInfo.token,
-            emailInfo.name,
-          );
-        }),
-    );
+      .then(emailInfo => {
+        return this.sendEmailNewPassword(
+          emailInfo.user,
+          emailInfo.token,
+          emailInfo.name,
+        );
+      });
   }
 
   private handleResetChPass(token: string, password: string): Promise<any> {
@@ -225,18 +223,15 @@ export class AuthController extends Controller {
     }
 
     // Check if blacklisted
-    return Promise.resolve(
-      JWTBlacklist.findOne({ where: { token: token } })
-        .then(result => {
-          // if exists in blacklist, reject
-          if (result != null)
-            return Promise.reject("This Token is blacklisted.");
-          return Promise.resolve(decodedjwt);
-        })
-        .catch(err => {
-          return Promise.reject(err);
-        }),
-    );
+    return JWTBlacklist.findOne({ where: { token: token } })
+      .then(result => {
+        // if exists in blacklist, reject
+        if (result != null) return Promise.reject("This Token is blacklisted.");
+        return decodedjwt;
+      })
+      .catch(err => {
+        return Promise.reject(err);
+      });
   }
 
   login(req: Request, res: Response) {

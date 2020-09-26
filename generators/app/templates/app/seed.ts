@@ -3,31 +3,31 @@ import { setupDB } from "@/db";
 import { log } from "@/libraries/Log";
 import { User } from "@/models/User";
 
-function seed(): PromiseLike<any> {
-  // Do your seed code here, should return a promise that resolves whenn you are done.
+async function seed(): Promise<void> {
+  // Do your seed code here.
 
   // Creates first admin user
-  return User.count().then((count: number) => {
-    if (count === 0)
-      return User.create({
-        name: "Admin",
-        email: "admin@example.com",
-        password: "adminadmin",
-        role: "admin",
-      });
-    return null;
-  });
+  const count = await User.count();
+  if (count === 0) {
+    await User.create({
+      name: "Admin",
+      email: "admin@example.com",
+      password: "adminadmin",
+      role: "admin",
+    });
+  }
 }
 
-setupDB()
-  .then(() => {
-    return seed();
-  })
-  .then(() => {
+async function main(): Promise<void> {
+  try {
+    await setupDB();
+    await seed();
     log.info("SEED DONE");
     process.exit();
-  })
-  .catch(err => {
+  } catch (err) {
     log.error("ERROR EXECUTING SEED:", err);
     process.exit();
-  });
+  }
+}
+
+main();

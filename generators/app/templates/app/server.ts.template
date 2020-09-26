@@ -8,7 +8,7 @@ import * as path from "path";
 import * as compression from "compression";
 import { routes } from "@/routes";
 import { log, requestLogStream } from "@/libraries/Log";
-import { config } from "@/config/config";
+import { config } from "@/config";
 import { createServer } from "http";
 
 export const app = express();

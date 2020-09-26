@@ -2,7 +2,7 @@ import * as path from "path";
 import * as nodemailer from "nodemailer";
 import * as ejs from "ejs";
 import { log } from "@/libraries/Log";
-import { config } from "@/config/config";
+import { config } from "@/config";
 import i18n from "@/libraries/i18n";
 
 class EmailService {

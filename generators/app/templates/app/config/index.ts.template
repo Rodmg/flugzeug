@@ -8,7 +8,8 @@ export const config = {
   env: process.env.NODE_ENV || "development",
 
   jwt: {
-    secret: process.env.JWT_SECRET || "<%- jwt_secret %>",
+    secret:
+      process.env.JWT_SECRET || "<%- jwt_secret %>",
     access: {
       expiry: {
         unit: "months",
@@ -66,6 +67,9 @@ export const config = {
   log: {
     // Console Log levels: error, warn, info, verbose, debug, silly
     level: process.env.LOG_LEVEL || "debug",
+    logToFiles: process.env.LOG_TO_FILES
+      ? process.env.LOG_TO_FILES === "true"
+      : false,
   },
 
   urls: {
@@ -83,7 +87,7 @@ export const config = {
     database: process.env.DB_NAME || "<%- dbname %>",
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
-    host: "localhost",
+    host: process.env.DB_HOST || "localhost",
     dialect: (process.env.DB_TYPE || "<%- dbtype %>") as Dialect,
     logging: false,
     storage: process.env.DB_STORAGE || "db.sqlite",
