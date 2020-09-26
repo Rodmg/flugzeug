@@ -75,6 +75,10 @@
 <% if (dbtype === 'mysql') { %>
     "mysql2": "1.6.1",
 <% } %>
+<% if (dbtype === 'postgres') { %>
+    "pg": "^8.3.3",
+    "pg-hstore": "^2.3.3",
+<% } %>
     "node-cron": "1.2.1",
     "nodemailer": "4.6.7",
     "reflect-metadata": "0.1.13",

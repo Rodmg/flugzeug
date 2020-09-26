@@ -1,4 +1,4 @@
-import { Table, Column, DataType } from "sequelize-typescript";
+import { Table, Column, DataType, ForeignKey, BelongsTo } from "sequelize-typescript";
 import { BaseModel } from "../libraries/BaseModel";
 <% if (belongsToUser) { %>import { User } from "./User";<% } %>
 
