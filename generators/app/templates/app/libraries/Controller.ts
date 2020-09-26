@@ -90,3 +90,13 @@ export class Controller {
     res.status(504).json({ message, data });
   }
 }
+
+export function handleServerError(err, res) {
+  if (err === ControllerErrors.NOT_FOUND) {
+    return Controller.notFound(res);
+  }
+  if (err === ControllerErrors.BAD_REQUEST) {
+    return Controller.badRequest(res);
+  }
+  return Controller.serverError(res, err);
+}

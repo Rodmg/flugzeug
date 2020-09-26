@@ -5,6 +5,6 @@
 [x] Add PostgreSQL support on generator
 [ ] Add migration auto generation
 [ ] Add API documentation auto generation
-[ ] Better include support on ModelController queries
+[x] Better include support on ModelController queries
 [ ] Add Validation to endpoints with Joi
 [ ] Support to generate serverless compatible project in generator

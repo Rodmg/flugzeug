@@ -6,6 +6,7 @@
 - Removed unused dependencies
 - Code cleanup
 - Added .env option to toggle logging to files
+- Changed format of responses for Controller
 
 **Breaking Changes:**
 

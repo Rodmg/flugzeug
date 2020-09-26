@@ -4,7 +4,13 @@ import { db } from "@/db";
 import { config } from "@/config";
 import { Op, Model, ModelCtor } from "sequelize";
 import * as _ from "lodash";
-import { Controller, ControllerErrors, parseId, parseBody } from "./Controller";
+import {
+  Controller,
+  ControllerErrors,
+  parseId,
+  parseBody,
+  handleServerError,
+} from "./Controller";
 
 const OPERATOR_ALIASES = {
   $eq: Op.eq,
@@ -19,6 +25,9 @@ const OPERATOR_ALIASES = {
   $is: Op.is,
   $like: Op.like,
   $notLike: Op.notLike,
+  $startsWith: Op.startsWith,
+  $endsWith: Op.endsWith,
+  $substring: Op.substring,
   $between: Op.between,
   $notBetween: Op.notBetween,
   $and: Op.and,
@@ -142,6 +151,25 @@ export function parseInclude(req: Request): Array<any> {
   }
 
   const tryWithFilter = (m: string) => {
+    if (!m.length) {
+      throw ControllerErrors.BAD_REQUEST;
+    }
+    /*
+     Two options here:
+     1. We have a Model name (like User) or a Model name with filter (like User.filter)
+     2. We have the name of the property for the association (like 'user' or 'owner')
+
+     1 always starts with uppercase, 2 with lowercase
+    */
+
+    const start = m[0];
+
+    if (start === start.toLowerCase()) {
+      // 2. name of the property
+      return m;
+    }
+
+    // 1. We have the Model name
     if (m.includes(".")) {
       const splt = m.split("."),
         modelName = splt[0],
@@ -280,7 +308,7 @@ export class ModelController<T extends Model> extends Controller {
       const { data, count } = result;
       return Controller.ok(res, data, { count, limit, offset });
     } catch (err) {
-      return Controller.serverError(res, err);
+      handleServerError(err, res);
     }
   }
 
@@ -293,10 +321,7 @@ export class ModelController<T extends Model> extends Controller {
       const result = await this.findOne(id, { where, include });
       return Controller.ok(res, result);
     } catch (err) {
-      if (err === ControllerErrors.NOT_FOUND) {
-        return Controller.notFound(res);
-      }
-      return Controller.serverError(res, err);
+      handleServerError(err, res);
     }
   }
 
@@ -306,7 +331,7 @@ export class ModelController<T extends Model> extends Controller {
       const result = await this.create(values);
       return Controller.created(res, result);
     } catch (err) {
-      Controller.serverError(res, err);
+      handleServerError(err, res);
     }
   }
 
@@ -323,10 +348,7 @@ export class ModelController<T extends Model> extends Controller {
       const result = await this.update(id, { where, include }, values);
       return Controller.ok(res, result);
     } catch (err) {
-      if (err === ControllerErrors.NOT_FOUND) {
-        return Controller.notFound(res);
-      }
-      return Controller.serverError(res, err);
+      handleServerError(err, res);
     }
   }
 
@@ -338,10 +360,7 @@ export class ModelController<T extends Model> extends Controller {
       await this.delete(id, { where });
       return Controller.noContent(res);
     } catch (err) {
-      if (err === ControllerErrors.NOT_FOUND) {
-        return Controller.notFound(res);
-      }
-      return Controller.serverError(res, err);
+      handleServerError(err, res);
     }
   }
 }

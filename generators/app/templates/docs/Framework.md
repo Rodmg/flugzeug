@@ -149,10 +149,12 @@ export default controller;
 - **limit**: number, max number of results to get
 - **offset** | **skip**: number, offset for the results to get, useful for pagination
 - **order** | **sort**: string or an Array of Arrays, specifying ordering for the results, format: `[["<column name>", "<ASC | DESC>"], ...]`
-- **include**: JSON(Array< Object | string >): Specify the relations to populate, the members of the array can be strings with the name of the model to populate, the name with a dot and a filter name, or a object with a key of the same format as before that denotes an array with the same format of the parent one (recursive). Example:
+- **include**: JSON(Array< Object | string >): Specify the relations to populate, the members of the array can be strings with the name of the model to populate, the name of the model with a dot and a filter name, the name of the property for the association, or a object with a key of the same format as before that denotes an array with the same format of the parent one (recursive). Examples:
 
   ```
   include=["Profile", {"Children.ordered": ["ChildrenProfile"]}]
+
+  include=[{"user": ["profile"]}]
   ```
 
 **Example:**
@@ -183,6 +185,9 @@ The contents of the `where` query param should be a JSON where the keys are eith
   | \$notIn      | Op.notIn             |
   | \$is         | Op.is                |
   | \$like       | Op.like              |
+  | \$startsWith | Op.startsWith        |
+  | \$endsWith   | Op.endsWith          |
+  | \$substring  | Op.substring         |
   | \$notLike    | Op.notLike           |
   | \$between    | Op.between           |
   | \$notBetween | Op.notBetween        |
