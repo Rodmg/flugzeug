@@ -90,7 +90,6 @@ export function parseWhere(req: Request): any {
   }
 
   // Merge with req.session.where (Useful for enforcing policies)
-  if (req.session == null) req.session = {};
   where = _.merge(where, req.session.where || {});
 
   where = sanitizeWhere(where);
