@@ -1,12 +1,12 @@
-import { ModelController } from "./../../libraries/ModelController";
-import { <%- modelName %> } from "./../../models/<%- modelName %>";
+import { ModelController } from "@/libraries/ModelController";
+import { <%- modelName %> } from "@/models/<%- modelName %>";
 import { Router } from "express";
 import {
   validateJWT,
   filterOwner,
   appendUser,
   stripNestedObjects,
-} from "./../../policies/General";
+} from "@/policies/General";
 
 export class <%- controllerName %>Controller extends ModelController<<%- modelName %>> {
 

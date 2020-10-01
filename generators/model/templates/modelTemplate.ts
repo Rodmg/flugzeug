@@ -5,7 +5,7 @@ import {
   ForeignKey,
   BelongsTo,
 } from "sequelize-typescript";
-import { BaseModel } from "../libraries/BaseModel";
+import { BaseModel } from "@/libraries/BaseModel";
 <% if (belongsToUser) { %>import { User } from "./User";<% } %>
 
 @Table({
