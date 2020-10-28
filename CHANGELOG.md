@@ -10,9 +10,9 @@
 
 **Breaking Changes:**
 
-- Mailgin support was removed by default (you can still add it manually if you need it by editing `services/EmailService.ts`)
+- Mailgun support was removed by default (you can still add it manually if you need it by editing `services/EmailService.ts`)
 - Controller was refactored, now it is just a basic Controller structure with utility functions for responses, etc.
-- All CRUD default functionality was extracted to ModelController, wich extends Controller
+- All CRUD default functionality was extracted to ModelController, witch extends Controller
 - ModelController CRUD functionality was refactored to make it more easily extensible, default handler functions changed name as follows:
   - find -> handleFindAll
   - findOne -> handleFindOne
