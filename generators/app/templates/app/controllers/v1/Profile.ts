@@ -1,12 +1,9 @@
 import { ModelController } from "@/libraries/ModelController";
 import { Profile } from "@/models/Profile";
 import { Router } from "express";
-import {
-  validateJWT,
-  filterOwner,
-  appendUser,
-  stripNestedObjects,
-} from "@/policies/General";
+import { validateJWT, filterOwner, appendUser } from "@/policies/General";
+import { validateBody } from "@/libraries/Validator";
+import { ProfileSchema } from "@/validators/Profile";
 
 export class ProfileController extends ModelController<Profile> {
   constructor() {
@@ -25,7 +22,7 @@ export class ProfileController extends ModelController<Profile> {
     this.router.put(
       "/:id",
       validateJWT("access"),
-      stripNestedObjects(),
+      validateBody(ProfileSchema),
       filterOwner(),
       appendUser(),
       (req, res) => this.handleUpdate(req, res),

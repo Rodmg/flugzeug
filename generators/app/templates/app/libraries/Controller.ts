@@ -50,6 +50,11 @@ export class Controller {
     return res.status(201).json({ message, ...metadata, data });
   }
 
+  public static accepted(res: Response) {
+    const message = "Accepted";
+    return res.status(202).end({ message });
+  }
+
   public static noContent(res: Response) {
     return res.status(204).end();
   }
@@ -78,6 +83,12 @@ export class Controller {
     res.status(404).json({ message, data });
   }
 
+  public static conflict(res: Response, data?: any) {
+    const message = "Conflict";
+    if (Buffer.isBuffer(data)) data = data.toString();
+    res.status(409).json({ message, data });
+  }
+
   public static serverError(res: Response, data?: any) {
     const message = "Internal Server Error";
     log.error(data);
@@ -91,12 +102,22 @@ export class Controller {
   }
 }
 
-export function handleServerError(err, res) {
+function handleDatabaseConstraintError(err: any, res: Response) {
+  return Controller.conflict(res, err.errors[0].message);
+}
+function isDBConstraintError(err: any): boolean {
+  return err.name === "SequelizeUniqueConstraintError";
+}
+
+export function handleServerError(err: any, res: Response) {
   if (err === ControllerErrors.NOT_FOUND) {
     return Controller.notFound(res);
   }
   if (err === ControllerErrors.BAD_REQUEST) {
     return Controller.badRequest(res);
+  }
+  if (isDBConstraintError(err)) {
+    return handleDatabaseConstraintError(err, res);
   }
   return Controller.serverError(res, err);
 }

@@ -24,6 +24,7 @@ const OPERATOR_ALIASES = {
   $notIn: Op.notIn,
   $is: Op.is,
   $like: Op.like,
+  $iLike: Op.iLike,
   $notLike: Op.notLike,
   $startsWith: Op.startsWith,
   $endsWith: Op.endsWith,
@@ -112,95 +113,129 @@ export function parseOffset(req: Request): number {
 }
 
 export function parseOrder(req: Request): any {
-  let sort: any = req.query.order || req.query.sort;
-  if (sort === undefined) {
-    return undefined;
-  }
+  try {
+    let sort: any = req.query.order || req.query.sort;
+    if (sort === undefined) {
+      return undefined;
+    }
 
-  // If `sort` is a string, attempt to JSON.parse() it.
-  // (e.g. `{"name": 1}`)
-  if (_.isString(sort)) {
-    try {
-      sort = JSON.parse(sort);
-    } catch (e) {
-      // If it is not valid JSON, then fall back to interpreting it as-is.
-      // (e.g. "name ASC")
-      // Put it in array form for avoiding errors with reserved words
+    // If `sort` is a string, attempt to JSON.parse() it.
+    // (e.g. `{"name": 1}`)
+    if (_.isString(sort)) {
       try {
-        const parts: Array<string> = sort.split(" ");
-        const colName: string = parts[0];
-        const orderParam: string = parts[1];
-        if (orderParam !== "ASC" && orderParam !== "DESC")
-          throw new Error("invalid query");
-        sort = [[colName, orderParam]];
+        sort = JSON.parse(sort);
       } catch (e) {
-        // Invalid string
-        sort = "";
+        // If it is not valid JSON, then fall back to interpreting it as-is.
+        // (e.g. "name ASC")
+        // Put it in array form for avoiding errors with reserved words
+        try {
+          const parts: Array<string> = sort.split(" ");
+          const colName: string = parts[0];
+          const orderParam: string = parts[1];
+          if (orderParam !== "ASC" && orderParam !== "DESC")
+            throw new Error("invalid query");
+          sort = [[colName, orderParam]];
+        } catch (e) {
+          // Invalid string
+          sort = "";
+        }
       }
     }
+    return sort;
+  } catch (err) {
+    log.error("Error on parseOrder:", err);
+    throw ControllerErrors.BAD_REQUEST;
   }
-  return sort;
 }
 
-export function parseInclude(req: Request): Array<any> {
-  let include: Array<any> = [];
-  const populate: any = req.query.include || req.query.populate;
+export function parseInclude(req: Request, model: ModelCtor<any>): Array<any> {
+  try {
+    let include: Array<any> = [];
+    const populate: any = req.query.include || req.query.populate;
 
-  if (_.isString(populate)) {
-    include = JSON.parse(populate);
-  }
+    if (_.isString(populate)) {
+      include = JSON.parse(populate);
+    }
 
-  const tryWithFilter = (m: string) => {
-    if (!m.length) {
+    if (!Array.isArray(include)) {
       throw ControllerErrors.BAD_REQUEST;
     }
-    /*
-     Two options here:
-     1. We have a Model name (like User) or a Model name with filter (like User.filter)
-     2. We have the name of the property for the association (like 'user' or 'owner')
 
-     1 always starts with uppercase, 2 with lowercase
-    */
-
-    const start = m[0];
-
-    if (start === start.toLowerCase()) {
-      // 2. name of the property
-      return m;
-    }
-
-    // 1. We have the Model name
-    if (m.includes(".")) {
-      const splt = m.split("."),
-        modelName = splt[0],
-        filterName = splt[1];
-
-      const model = getModelFromList(modelName);
-
-      //return {model: model, where: where, required: false};
-      if (model["filter"] != null) {
-        return model["filter"](filterName);
+    const tryWithFilter = (m: string, model: ModelCtor<any>) => {
+      if (!m.length) {
+        throw ControllerErrors.BAD_REQUEST;
       }
-    }
+      /*
+       Two options here:
+       1. We have a Model name (like User) or a Model name with filter (like User.filter)
+       2. We have the name of the property for the association (like 'user' or 'owner')
+  
+       1 always starts with uppercase, 2 with lowercase
+      */
 
-    return { model: getModelFromList(m), required: false };
-  };
+      const start = m[0];
 
-  const parseIncludeRecursive = item => {
-    if (_.isString(item)) {
-      return tryWithFilter(item);
-    } else {
-      const model: string = Object.keys(item)[0];
-      const content = item[model];
+      if (start === start.toLowerCase()) {
+        // 2. name of the property
+        // Get association data from model
+        const association = model.associations[m];
+        if (association == null) {
+          throw ControllerErrors.BAD_REQUEST;
+        }
+        const targetModel = association.target;
+        const as = association.as;
+        return { model: targetModel, as, required: false };
+      }
 
-      const result: any = tryWithFilter(model);
-      result.include = content.map(i => parseIncludeRecursive(i));
+      // 1. We have the Model name
+      if (m.includes(".")) {
+        const splt = m.split("."),
+          modelName = splt[0],
+          filterName = splt[1];
 
-      return result;
-    }
-  };
+        const model = getModelFromList(modelName);
 
-  return include.map(item => parseIncludeRecursive(item));
+        //return {model: model, where: where, required: false};
+        if (model["filter"] != null) {
+          return model["filter"](filterName);
+        }
+      }
+
+      return { model: getModelFromList(m), required: false };
+    };
+
+    const parseIncludeRecursive = (item, model: ModelCtor<any>) => {
+      if (_.isString(item)) {
+        // Simple include
+        return tryWithFilter(item, model);
+      } else {
+        // Include with nested includes
+        const modelName: string = Object.keys(item)[0];
+        const content = item[modelName];
+
+        if (!Array.isArray(content)) {
+          throw ControllerErrors.BAD_REQUEST;
+        }
+
+        const result: any = tryWithFilter(modelName, model);
+        result.include = content.map(i =>
+          parseIncludeRecursive(i, result.model),
+        );
+
+        return result;
+      }
+    };
+
+    let preparedInclude = include.map(item =>
+      parseIncludeRecursive(item, model),
+    );
+    // Merge with req.session.include (Useful for enforcing policies)
+    preparedInclude = _.merge(preparedInclude, req.session?.include || {});
+    return preparedInclude;
+  } catch (err) {
+    log.error("Error on parseInclude:", err);
+    throw ControllerErrors.BAD_REQUEST;
+  }
 }
 
 export class ModelController<T extends Model> extends Controller {
@@ -236,7 +271,10 @@ export class ModelController<T extends Model> extends Controller {
       offset,
       order,
       include,
+      distinct: true,
+      col: "id",
     });
+
     return {
       count: result.count,
       data: result.rows as T[],
@@ -297,7 +335,7 @@ export class ModelController<T extends Model> extends Controller {
       const limit = parseLimit(req);
       const offset = parseOffset(req);
       const order = parseOrder(req);
-      const include = parseInclude(req);
+      const include = parseInclude(req, this.model);
       const result = await this.findAll({
         where,
         limit,
@@ -317,7 +355,7 @@ export class ModelController<T extends Model> extends Controller {
       // For applying constraints (usefull with policies)
       const where = parseWhere(req);
       const id = parseId(req);
-      const include = parseInclude(req);
+      const include = parseInclude(req, this.model);
       const result = await this.findOne(id, { where, include });
       return Controller.ok(res, result);
     } catch (err) {
@@ -343,7 +381,7 @@ export class ModelController<T extends Model> extends Controller {
       // For applying constraints (usefull with policies)
       const where = parseWhere(req);
       where.id = id;
-      const include = parseInclude(req);
+      const include = parseInclude(req, this.model);
       // Update
       const result = await this.update(id, { where, include }, values);
       return Controller.ok(res, result);

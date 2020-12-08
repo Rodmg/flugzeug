@@ -2,6 +2,8 @@ import { ModelController } from "@/libraries/ModelController";
 import { User } from "@/models/User";
 import { Router } from "express";
 import { validateJWT, isSelfUser, filterRoles } from "@/policies/General";
+import { validateBody } from "@/libraries/Validator";
+import { UserSchema } from "@/validators/User";
 
 export class UserController extends ModelController<User> {
   constructor() {
@@ -18,6 +20,7 @@ export class UserController extends ModelController<User> {
       "/:id",
       validateJWT("access"),
       filterRoles(["admin"]),
+      validateBody(UserSchema),
       (req, res) => this.handleUpdate(req, res),
     ); // only admin can edit user
     this.router.delete(

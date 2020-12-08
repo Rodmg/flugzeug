@@ -11,6 +11,13 @@ import * as _ from "lodash";
 import * as moment from "moment";
 import * as jwt from "jsonwebtoken";
 import * as uuid from "uuid";
+import { validateBody } from "@/libraries/Validator";
+import {
+  AuthChangeSchema,
+  AuthLoginSchema,
+  AuthRegisterSchema,
+  AuthResetPostSchema,
+} from "@/validators/Auth";
 
 export class AuthController extends Controller {
   constructor() {
@@ -19,15 +26,26 @@ export class AuthController extends Controller {
   }
 
   routes(): Router {
-    this.router.post("/login", (req, res) => this.login(req, res));
+    this.router.post("/login", validateBody(AuthLoginSchema), (req, res) =>
+      this.login(req, res),
+    );
     this.router.post("/logout", validateJWT("access"), (req, res) =>
       this.logout(req, res),
     );
-    this.router.post("/register", (req, res) => this.register(req, res));
+    this.router.post(
+      "/register",
+      validateBody(AuthRegisterSchema),
+      (req, res) => this.register(req, res),
+    );
     this.router.get("/reset", (req, res) => this.resetGet(req, res));
-    this.router.post("/reset", (req, res) => this.resetPost(req, res));
-    this.router.post("/change", validateJWT("access"), (req, res) =>
-      this.changePassword(req, res),
+    this.router.post("/reset", validateBody(AuthResetPostSchema), (req, res) =>
+      this.resetPost(req, res),
+    );
+    this.router.post(
+      "/change",
+      validateJWT("access"),
+      validateBody(AuthChangeSchema),
+      (req, res) => this.changePassword(req, res),
     );
     this.router.post("/refresh", validateJWT("refresh"), (req, res) =>
       this.refreshToken(req, res),
