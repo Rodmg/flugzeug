@@ -374,7 +374,6 @@ export class AuthController extends Controller {
     // Validate
     if (newUser.email == null || newUser.password == null)
       return Controller.badRequest(res);
-    // Email and password length should be validated on user create TODO test
 
     let user: User;
     User.create(newUser)
