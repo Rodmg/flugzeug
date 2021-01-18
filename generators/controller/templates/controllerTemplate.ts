@@ -1,10 +1,14 @@
+import { ModelController } from "@/libraries/ModelController";
+import { <%- modelName %> } from "@/models/<%- modelName %>";
+import { Router } from "express";
+import {
+  validateJWT,
+  filterOwner,
+  appendUser,
+  stripNestedObjects,
+} from "@/policies/General";
 
-import { Controller } from "./../../libraries/Controller";
-import { <%- modelName %> } from "./../../models/<%- modelName %>";
-import { Request, Response, Router } from "express";
-import { validateJWT, filterOwner, appendUser, stripNestedObjects, filterRoles } from "./../../policies/General";
-
-export class <%- controllerName %>Controller extends Controller {
+export class <%- controllerName %>Controller extends ModelController<<%- modelName %>> {
 
   constructor() {
     super();
@@ -14,11 +18,11 @@ export class <%- controllerName %>Controller extends Controller {
 
   routes(): Router {
 
-    this.router.get("/", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.find(req, res));
-    this.router.get("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.findOne(req, res));
-    this.router.post("/", <% if (needsAuth) { %>validateJWT("access"), <% } %>stripNestedObjects(), <% if (belongsToUser) { %>filterOwner(), appendUser(), <% } %>(req, res) => this.create(req, res));
-    this.router.put("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %>stripNestedObjects(), <% if (belongsToUser) { %>filterOwner(), appendUser(), <% } %>(req, res) => this.update(req, res));
-    this.router.delete("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.destroy(req, res));
+    this.router.get("/", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (needsAuth && belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.handleFindAll(req, res));
+    this.router.get("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (needsAuth && belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.handleFindOne(req, res));
+    this.router.post("/", <% if (needsAuth) { %>validateJWT("access"), <% } %>stripNestedObjects(), <% if (needsAuth && belongsToUser) { %>filterOwner(), appendUser(), <% } %>(req, res) => this.handleCreate(req, res));
+    this.router.put("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %>stripNestedObjects(), <% if (needsAuth && belongsToUser) { %>filterOwner(), appendUser(), <% } %>(req, res) => this.handleUpdate(req, res));
+    this.router.delete("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (needsAuth && belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.handleDelete(req, res));
 
     return this.router;
   }

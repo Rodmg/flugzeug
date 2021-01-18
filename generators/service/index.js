@@ -48,4 +48,13 @@ module.exports = class extends Generator {
       this.props,
     );
   }
+
+  end() {
+    // Make sure code is correctly formatted after generation
+    this.spawnCommandSync("npx", [
+      "prettier",
+      "--write",
+      `app/services/${this.props.serviceName}.ts`,
+    ]);
+  }
 };

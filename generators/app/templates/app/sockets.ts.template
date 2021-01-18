@@ -1,5 +1,5 @@
-import * as Socketio from "socket.io";
-import * as _ from "lodash";
+import Socketio from "socket.io";
+import _ from "lodash";
 import { server } from "@/server";
 import { default as auth } from "@/controllers/v1/Auth";
 import EventService from "@/services/EventService";

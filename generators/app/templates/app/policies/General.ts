@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { default as auth } from "@/controllers/v1/Auth";
-import * as _ from "lodash";
+import _ from "lodash";
 import { Controller } from "@/libraries/Controller";
 
 /*
@@ -33,7 +33,6 @@ export function validateJWT(type: string) {
           Controller.unauthorized(res, "Invalid Token");
           return null;
         }
-        if (req.session == null) req.session = {};
         req.session.jwt = decoded;
         req.session.jwtstring = token;
         req.session.user = _.pick(decoded, ["id", "email", "role"]);
@@ -52,7 +51,6 @@ export function validateJWT(type: string) {
 */
 export function filterOwner(key = "userId") {
   return (req: Request, res: Response, next: Function) => {
-    if (req.session == null) req.session = {};
     const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
     if (req.session.where == null) req.session.where = {};
@@ -88,7 +86,6 @@ export function isOwner(model: any, key = "userId") {
 */
 export function appendUser(key = "userId") {
   return (req: Request, res: Response, next: Function) => {
-    if (req.session == null) req.session = {};
     const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
     if (!req.body) req.body = {};
@@ -126,7 +123,6 @@ export function stripNestedObjects() {
 */
 export function filterRoles(roles: Array<string>) {
   return (req: Request, res: Response, next: Function) => {
-    if (req.session == null) req.session = {};
     const role = req.session.jwt.role;
     if (role == null) return Controller.unauthorized(res);
     if (roles.indexOf(role) < 0) return Controller.unauthorized(res);
@@ -140,11 +136,9 @@ export function filterRoles(roles: Array<string>) {
 */
 export function isSelfUser() {
   return (req: Request, res: Response, next: Function) => {
-    if (req.session == null) req.session = {};
     const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
-    if (parseInt(id) !== parseInt(req.params.id))
-      return Controller.unauthorized(res);
+    if (id !== parseInt(req.params.id)) return Controller.unauthorized(res);
     next();
   };
 }

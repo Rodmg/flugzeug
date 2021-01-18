@@ -1,5 +1,5 @@
 import { Application, static as Static } from "express";
-import * as path from "path";
+import path from "path";
 import { log } from "@/libraries/Log";
 
 const importedCtrls1 = require("require-dir-all")("controllers/v1");

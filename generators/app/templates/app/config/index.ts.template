@@ -1,13 +1,15 @@
-import * as ip from "ip";
-import * as path from "path";
+import { Dialect } from "sequelize/types";
+import ip from "ip";
+import path from "path";
 
-export const config: any = {
+export const config = {
   root: path.normalize(`${__dirname}/..`),
 
   env: process.env.NODE_ENV || "development",
 
   jwt: {
-    secret: process.env.JWT_SECRET || "<%- jwt_secret %>",
+    secret:
+      process.env.JWT_SECRET || "<%- jwt_secret %>",
     access: {
       expiry: {
         unit: "months",
@@ -37,9 +39,16 @@ export const config: any = {
   email: {
     from_address:
       process.env.EMAIL_FROM_ADDRESS || "MyApp <no-reply@example.com>",
+    host: process.env.EMAIL_SMTP_HOST || "smtp.gmail.com",
+    port: process.env.EMAIL_SMPT_PORT
+      ? parseInt(process.env.EMAIL_SMPT_PORT)
+      : 587,
+    secure: process.env.EMAIL_SMTP_SECURE
+      ? process.env.EMAIL_SMTP_SECURE === "true"
+      : true,
     auth: {
-      api_key: process.env.EMAIL_API_KEY || "(your mailgun api key)",
-      domain: process.env.EMAIL_DOMAIN || "(your mailgun domain)",
+      user: process.env.EMAIL_SMTP_USER || "(your SMTP user)",
+      pass: process.env.EMAIL_SMTP_PASS || "(your SMTP password)",
     },
   },
 
@@ -58,6 +67,9 @@ export const config: any = {
   log: {
     // Console Log levels: error, warn, info, verbose, debug, silly
     level: process.env.LOG_LEVEL || "debug",
+    logToFiles: process.env.LOG_TO_FILES
+      ? process.env.LOG_TO_FILES === "true"
+      : false,
   },
 
   urls: {
@@ -67,14 +79,16 @@ export const config: any = {
     url: process.env.URLS_URL || ip.address(),
     port: process.env.URLS_PORT ? String(process.env.URLS_PORT) : "",
     apiRoot: process.env.URLS_API_ROOT || "/api/v1",
+    base: "",
+    baseApi: "",
   },
 
   db: {
     database: process.env.DB_NAME || "<%- dbname %>",
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
-    host: "localhost",
-    dialect: process.env.DB_TYPE || "<%- dbtype %>",
+    host: process.env.DB_HOST || "localhost",
+    dialect: (process.env.DB_TYPE || "<%- dbtype %>") as Dialect,
     logging: false,
     storage: process.env.DB_STORAGE || "db.sqlite",
     timezone: "utc", // IMPORTANT For correct timezone management with DB.

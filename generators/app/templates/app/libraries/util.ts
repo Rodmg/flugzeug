@@ -37,3 +37,32 @@ export function getRandomColor() {
   const index = Math.floor(Math.random() * colors.length);
   return colors[index];
 }
+
+export async function retry<T>(
+  fn: () => Promise<T>,
+  retriesLeft = 3,
+  interval = 100,
+  isExponential = false,
+): Promise<T> {
+  try {
+    const val = await fn();
+    return val;
+  } catch (error) {
+    if (retriesLeft) {
+      await new Promise(r => setTimeout(r, interval));
+      return retry(
+        fn,
+        retriesLeft - 1,
+        isExponential ? interval * 2 : interval,
+        isExponential,
+      );
+    } else
+      throw new Error(
+        `Max retries reached for function ${fn.name}, error: ${error}`,
+      );
+  }
+}
+
+export function wait(ms: number): Promise<void> {
+  return new Promise(res => setTimeout(res, ms));
+}

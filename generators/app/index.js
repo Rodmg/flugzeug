@@ -73,15 +73,16 @@ module.exports = class extends Generator {
         choices: [
           { name: "SQLite", value: "sqlite" },
           { name: "MySQL", value: "mysql" },
+          { name: "PostgreSQL", value: "postgres" },
         ],
       },
       {
         type: "input",
         name: "dbname",
-        message: "MySQL Database name:",
+        message: "Database name:",
         default: this._makeName(this.appname),
         filter: this._makeName,
-        when: props => props.dbtype === "mysql",
+        when: props => props.dbtype === "mysql" || props.dbtype === "postgres",
       },
       {
         type: "confirm",
@@ -99,9 +100,7 @@ module.exports = class extends Generator {
   default() {
     if (path.basename(this.destinationPath()) !== this.props.name) {
       this.log(
-        `Your project must be inside a folder named ${
-          this.props.name
-        }\nI'll automatically create this folder.`,
+        `Your project must be inside a folder named ${this.props.name}\nI'll automatically create this folder.`,
       );
       mkdirp(this.props.name);
       this.destinationRoot(this.destinationPath(this.props.name));
@@ -174,8 +173,8 @@ module.exports = class extends Generator {
     this._generateJwtSecret()
       .then(secret => {
         this.fs.copyTpl(
-          this.templatePath("app/config/config.ts.template"),
-          this.destinationPath("app/config/config.ts"),
+          this.templatePath("app/config/index.ts.template"),
+          this.destinationPath("app/config/index.ts"),
           {
             dbtype: this.props.dbtype,
             dbname: this.props.dbname,
@@ -221,6 +220,8 @@ module.exports = class extends Generator {
   }
 
   end() {
+    // Make sure code is correctly formatted after generation
+    this.spawnCommandSync("npm", ["run", "format"]);
     // Initialize git repo
     this.spawnCommandSync("git", ["init", "--quiet"]);
     this.spawnCommandSync("git", ["add", "."]);
