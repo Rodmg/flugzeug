@@ -138,8 +138,7 @@ export function isSelfUser() {
   return (req: Request, res: Response, next: Function) => {
     const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
-    if (parseInt(id) !== parseInt(req.params.id))
-      return Controller.unauthorized(res);
+    if (id !== parseInt(req.params.id)) return Controller.unauthorized(res);
     next();
   };
 }

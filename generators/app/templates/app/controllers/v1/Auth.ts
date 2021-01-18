@@ -42,7 +42,7 @@ export interface JWTPayload {
   nbf?: number;
   jti: string;
   email: string;
-  role: string;
+  role: User["role"];
 }
 
 export class AuthController extends Controller {
