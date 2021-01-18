@@ -1,12 +1,17 @@
-# Flugzeug 2.0.0-alpha1
+# Flugzeug 2.0.0
 
 - Removed mailgun support for EmailService in favor of generic SMTP configuration
-- Refactored Controller, added ModelController
+- Refactored Controller to make it easier to extend, added ModelController
 - Retired segfault-handler
 - Removed unused dependencies
 - Code cleanup
 - Added .env option to toggle logging to files
 - Changed format of responses for Controller
+- Add PostgreSQL support on generator
+- Add migration auto generation and apply tools (makemigration, migrate)
+- Better include support on ModelController queries
+- Added attributes option to ModelConroller, useful for policies
+- Add Validation to endpoints with Joi
 
 **Breaking Changes:**
 
