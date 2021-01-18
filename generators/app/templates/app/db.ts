@@ -1,6 +1,6 @@
 import { Sequelize, SequelizeOptions } from "sequelize-typescript";
 import { config } from "@/config";
-import * as path from "path";
+import path from "path";
 
 const dbOptions: SequelizeOptions = {
   ...config.db,
@@ -16,6 +16,18 @@ export const db = new Sequelize(dbOptions);
 // Should be called in server
 export function setupDB(): Promise<any> {
   return db.sync();
+}
+
+export function setupDBClearData(): Promise<any> {
+  return db.sync({
+    force: true,
+  });
+}
+
+export function setupDBAlterSchema(): Promise<any> {
+  return db.sync({
+    alter: true,
+  });
 }
 
 export function printDBCreateSQL(): Promise<any> {

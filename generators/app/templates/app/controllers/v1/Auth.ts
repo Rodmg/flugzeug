@@ -7,10 +7,10 @@ import { log } from "@/libraries/Log";
 import { config } from "@/config";
 import { validateJWT } from "@/policies/General";
 import mailer from "@/services/EmailService";
-import * as _ from "lodash";
-import * as moment from "moment";
-import * as jwt from "jsonwebtoken";
-import * as uuid from "uuid";
+import _ from "lodash";
+import moment from "moment";
+import jwt from "jsonwebtoken";
+import uuid from "uuid";
 import { validateBody } from "@/libraries/Validator";
 import {
   AuthChangeSchema,
@@ -18,6 +18,32 @@ import {
   AuthRegisterSchema,
   AuthResetPostSchema,
 } from "@/validators/Auth";
+
+export interface Token {
+  token: string;
+  expires: number;
+  expires_in: number;
+}
+
+export interface AuthCredentials {
+  token: string;
+  expires: number;
+  refresh_token: Token;
+  user: Pick<User, "id" | "name" | "email" | "role">;
+  profile: Profile;
+}
+
+export interface JWTPayload {
+  id: number;
+  sub: string;
+  aud: string;
+  exp: number;
+  iat: number;
+  nbf?: number;
+  jti: string;
+  email: string;
+  role: string;
+}
 
 export class AuthController extends Controller {
   constructor() {
@@ -54,11 +80,11 @@ export class AuthController extends Controller {
     return this.router;
   }
 
-  public createToken(user: any, type: string) {
-    const expiryUnit: any = config.jwt[type].expiry.unit;
-    const expiryLength = config.jwt[type].expiry.length;
+  public createToken(user: User, type: string): Token {
+    const expiryUnit: string = config.jwt[type].expiry.unit;
+    const expiryLength: number = config.jwt[type].expiry.length;
     const expires = moment()
-      .add(expiryLength, expiryUnit)
+      .add(expiryLength, expiryUnit as moment.unitOfTime.DurationConstructor)
       .valueOf();
     const issued = Date.now();
     const expires_in = (expires - issued) / 1000; // seconds
@@ -84,7 +110,7 @@ export class AuthController extends Controller {
     };
   }
 
-  protected getCredentials(user: any): any {
+  protected getCredentials(user: User): AuthCredentials {
     // Prepare response object
     const token = this.createToken(user, "access");
     const refreshToken = this.createToken(user, "refresh");
@@ -99,7 +125,7 @@ export class AuthController extends Controller {
   }
 
   private sendEmailNewPassword(
-    user: any,
+    user: User,
     token: string,
     name?: string,
   ): Promise<any> {
@@ -122,7 +148,7 @@ export class AuthController extends Controller {
       });
   }
 
-  private sendEmailPasswordChanged(user: any, name?: string): Promise<any> {
+  private sendEmailPasswordChanged(user: User, name?: string): Promise<any> {
     const subject = "Password restored";
 
     return mailer
@@ -162,7 +188,10 @@ export class AuthController extends Controller {
       });
   }
 
-  private handleResetChPass(token: string, password: string): Promise<any> {
+  private handleResetChPass(
+    token: string,
+    password: string,
+  ): Promise<AuthCredentials> {
     return this.validateJWT(token, "reset")
       .then(decodedjwt => {
         if (!decodedjwt) {
@@ -199,7 +228,7 @@ export class AuthController extends Controller {
 
             this.sendEmailPasswordChanged(results.user); // We send it asynchronously, we don't care if there is a mistake
 
-            const credentials: any = this.getCredentials(results.user);
+            const credentials = this.getCredentials(results.user);
             return credentials;
           })
           .catch(err => {
@@ -212,11 +241,11 @@ export class AuthController extends Controller {
       });
   }
 
-  public validateJWT(token: string, type: string): Promise<any> {
+  public validateJWT(token: string, type: string): Promise<JWTPayload> {
     // Decode token
-    let decodedjwt: any;
+    let decodedjwt: JWTPayload;
     try {
-      decodedjwt = jwt.verify(token, config.jwt.secret);
+      decodedjwt = jwt.verify(token, config.jwt.secret) as JWTPayload;
     } catch (err) {
       return Promise.reject(err);
     }
@@ -275,7 +304,7 @@ export class AuthController extends Controller {
       })
       .then(authenticated => {
         if (authenticated === true) {
-          const credentials: any = this.getCredentials(results.user);
+          const credentials = this.getCredentials(results.user);
           return Controller.ok(res, credentials);
         } else {
           return Controller.unauthorized(res);
@@ -289,7 +318,7 @@ export class AuthController extends Controller {
 
   logout(req: Request, res: Response) {
     const token: string = req.session.jwtstring;
-    const decodedjwt: any = req.session.jwt;
+    const decodedjwt: JWTPayload = req.session.jwt;
     if (_.isUndefined(token)) return Controller.unauthorized(res);
     if (_.isUndefined(decodedjwt)) return Controller.unauthorized(res);
     // Put token in blacklist
@@ -309,8 +338,8 @@ export class AuthController extends Controller {
   refreshToken(req: Request, res: Response) {
     // Refresh token has been previously authenticated in validateJwt as refresh token
     const refreshToken: string = req.session.jwtstring;
-    const decodedjwt: any = req.session.jwt;
-    const reqUser: any = req.session.user;
+    const decodedjwt: JWTPayload = req.session.jwt;
+    const reqUser: Pick<User, "id" | "email" | "role"> = req.session.user;
     // Put refresh token in blacklist
     JWTBlacklist.create({
       token: refreshToken,
@@ -319,12 +348,12 @@ export class AuthController extends Controller {
       .then(() => {
         return User.findOne({ where: { id: reqUser.id } });
       })
-      .then((user: any) => {
+      .then(user => {
         if (!user) {
           return Controller.unauthorized(res);
         }
         // Create new token and refresh token and send
-        const credentials: any = this.getCredentials(user);
+        const credentials = this.getCredentials(user);
         return Controller.ok(res, credentials);
       })
       .catch(err => {
@@ -339,7 +368,7 @@ export class AuthController extends Controller {
     };
 
     // Optional extra params:
-    const locale: string | undefined = req.body.locale;
+    const locale: Profile["locale"] | undefined = req.body.locale;
     const timezone: string | undefined = req.body.timezone;
 
     // Validate
@@ -347,7 +376,7 @@ export class AuthController extends Controller {
       return Controller.badRequest(res);
     // Email and password length should be validated on user create TODO test
 
-    let user: any;
+    let user: User;
     User.create(newUser)
       .then(result => {
         // We need to do another query because before the profile wasn't ready
@@ -363,7 +392,7 @@ export class AuthController extends Controller {
             return user.profile.save();
           })
           .then(() => {
-            const credentials: any = this.getCredentials(user);
+            const credentials = this.getCredentials(user);
             return Controller.ok(res, credentials);
           });
       })
@@ -426,7 +455,7 @@ export class AuthController extends Controller {
   }
 
   resetGet(req: Request, res: Response) {
-    const token: any = req.query.token;
+    const token: string = req.query.token as string;
     if (_.isUndefined(token)) return Controller.unauthorized(res);
     // Decode token
     this.validateJWT(token, "reset")
@@ -478,7 +507,7 @@ export class AuthController extends Controller {
       })
       .then(result => {
         if (!result) return Controller.serverError(res);
-        const credentials: any = this.getCredentials(results.user);
+        const credentials = this.getCredentials(results.user);
         return Controller.ok(res, credentials);
       })
       .catch(err => {

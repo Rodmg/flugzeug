@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+import Joi from "joi";
 
 export const UserSchema: Joi.ObjectSchema = Joi.object({
   name: Joi.string()

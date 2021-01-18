@@ -3,7 +3,7 @@ import { log } from "./Log";
 import { db } from "@/db";
 import { config } from "@/config";
 import { Op, Model, ModelCtor } from "sequelize";
-import * as _ from "lodash";
+import _ from "lodash";
 import {
   Controller,
   ControllerErrors,
@@ -42,6 +42,7 @@ export interface Query {
   skip?: number;
   include?: any[];
   where?: any;
+  attributes?: any;
 }
 
 export function getModelFromList(modelName) {
@@ -65,6 +66,31 @@ export function sanitizeWhere(where: any): any {
   recursiveParse(where);
 
   return where;
+}
+
+export function sanitizeAttributes(attributes: any): any {
+  // If `attributes` parameter is a string, try to interpret it as JSON
+  if (_.isString(attributes)) {
+    try {
+      attributes = JSON.parse(attributes);
+    } catch (e) {
+      attributes = null;
+    }
+  }
+
+  // allow only the object form
+  if (!_.isObject(attributes)) attributes = {};
+
+  // allow only include, exclude keys
+  attributes = _.pick(attributes, "include", "exclude");
+  if (!Array.isArray(attributes.include)) attributes.include = [];
+  if (!Array.isArray(attributes.exclude)) attributes.exclude = [];
+
+  // only string attributes
+  attributes.include = attributes.include.map(a => String(a));
+  attributes.exclude = attributes.exclude.map(a => String(a));
+
+  return attributes;
 }
 
 export function parseWhere(req: Request): any {
@@ -91,6 +117,7 @@ export function parseWhere(req: Request): any {
   }
 
   // Merge with req.session.where (Useful for enforcing policies)
+  if (req.session == null) req.session = {};
   where = _.merge(where, req.session.where || {});
 
   where = sanitizeWhere(where);
@@ -237,6 +264,37 @@ export function parseInclude(req: Request, model: ModelCtor<any>): Array<any> {
   }
 }
 
+export function parseAttributes(req: Request): any {
+  // Look for explicitly specified `attributes` parameter.
+  let attributes: any = req.query.attributes;
+
+  if (!req.session) req.session = {};
+
+  // validated object keys
+  attributes = sanitizeAttributes(attributes);
+  req.session.attributes = sanitizeAttributes(req.session.attributes);
+
+  // Merge with req.session.attributes (Useful for enforcing policies)
+  attributes.include = _.union(
+    attributes.include,
+    req.session.attributes.include,
+  );
+  attributes.exclude = _.union(
+    attributes.exclude,
+    req.session.attributes.exclude,
+  );
+
+  // remove 'exclude' values from 'includes' if neccesary and ignored if no values
+  attributes.include = attributes.include.filter(
+    a => !attributes.exclude.includes(a),
+  );
+  if (attributes.include.length == 0)
+    attributes = _.pick(attributes, "exclude");
+
+  // Return final `attributes`.
+  return attributes;
+}
+
 export class ModelController<T extends Model> extends Controller {
   protected model: ModelCtor<T>;
 
@@ -263,7 +321,7 @@ export class ModelController<T extends Model> extends Controller {
   }
 
   async findAll(query: Query): Promise<{ count: number; data: T[] }> {
-    const { where, limit, offset, order, include } = query;
+    const { where, limit, offset, order, include, attributes } = query;
     const result = await this.model.findAndCountAll({
       where,
       limit,
@@ -272,6 +330,7 @@ export class ModelController<T extends Model> extends Controller {
       include,
       distinct: true,
       col: "id",
+      attributes,
     });
 
     return {
@@ -281,11 +340,12 @@ export class ModelController<T extends Model> extends Controller {
   }
 
   async findOne(id: number, query: Query): Promise<T> {
-    const { where, include } = query;
+    const { where, include, attributes } = query;
     where.id = id;
     const result = await this.model.findOne({
       where,
       include,
+      attributes,
     });
     if (!result) {
       throw ControllerErrors.NOT_FOUND;
@@ -334,6 +394,7 @@ export class ModelController<T extends Model> extends Controller {
       const limit = parseLimit(req);
       const offset = parseOffset(req);
       const order = parseOrder(req);
+      const attributes = parseAttributes(req);
       const include = parseInclude(req, this.model);
       const result = await this.findAll({
         where,
@@ -341,6 +402,7 @@ export class ModelController<T extends Model> extends Controller {
         offset,
         order,
         include,
+        attributes,
       });
       const { data, count } = result;
       return Controller.ok(res, data, { count, limit, offset });
@@ -354,8 +416,9 @@ export class ModelController<T extends Model> extends Controller {
       // For applying constraints (usefull with policies)
       const where = parseWhere(req);
       const id = parseId(req);
+      const attributes = parseAttributes(req);
       const include = parseInclude(req, this.model);
-      const result = await this.findOne(id, { where, include });
+      const result = await this.findOne(id, { where, include, attributes });
       return Controller.ok(res, result);
     } catch (err) {
       handleServerError(err, res);

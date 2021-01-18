@@ -1,4 +1,4 @@
-import * as core from "express-serve-static-core";
+import core from "express-serve-static-core";
 
 declare module "express" {
   interface Request<

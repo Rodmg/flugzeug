@@ -6,7 +6,7 @@
     Cleanup expired blacklisted tokens each 24h
 */
 
-import * as cron from "node-cron";
+import cron from "node-cron";
 import { log } from "@/libraries/Log";
 import { JWTBlacklist } from "@/models/JWTBlacklist";
 import { Op } from "sequelize";

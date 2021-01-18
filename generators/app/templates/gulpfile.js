@@ -90,6 +90,33 @@ function doSeed() {
 }
 const seed = gulp.series(compile, doSeed);
 
+function doCleanSeed() {
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/cleanAndSeedDb.js",
+  ]);
+}
+const cleanSeed = gulp.series(compile, doCleanSeed);
+
+function doMakemigration() {
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/libraries/migrations/makemigration.js",
+  ]);
+}
+const makemigration = gulp.series(compile, doMakemigration);
+
+function doMigrate() {
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/libraries/migrations/migrate.js",
+  ]);
+}
+const migrate = gulp.series(compile, doMigrate);
+
 const test = gulp.series(build, shell.task("npm test"));
 
 const production = gulp.series(build);
@@ -107,6 +134,9 @@ module.exports = {
   serve,
   sql,
   seed,
+  cleanSeed,
+  makemigration,
+  migrate,
   test,
   production,
   default: production,

@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+import Joi from "joi";
 
 export const AuthLoginSchema: Joi.ObjectSchema = Joi.object({
   email: Joi.string()

@@ -1,6 +1,6 @@
 import { Dialect } from "sequelize/types";
-import * as ip from "ip";
-import * as path from "path";
+import ip from "ip";
+import path from "path";
 
 export const config = {
   root: path.normalize(`${__dirname}/..`),

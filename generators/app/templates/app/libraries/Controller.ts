@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { log } from "./Log";
-import * as _ from "lodash";
+import _ from "lodash";
 
 export enum ControllerErrors {
   NOT_FOUND,
@@ -102,7 +102,7 @@ export class Controller {
   }
 }
 
-function handleDatabaseConstraintError(err: any, res: Response) {
+function handleDatabaseConstraintsError(err: any, res: Response) {
   return Controller.conflict(res, err.errors[0].message);
 }
 function isDBConstraintError(err: any): boolean {
@@ -117,7 +117,7 @@ export function handleServerError(err: any, res: Response) {
     return Controller.badRequest(res);
   }
   if (isDBConstraintError(err)) {
-    return handleDatabaseConstraintError(err, res);
+    return handleDatabaseConstraintsError(err, res);
   }
   return Controller.serverError(res, err);
 }

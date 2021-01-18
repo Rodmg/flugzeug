@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { default as auth } from "@/controllers/v1/Auth";
-import * as _ from "lodash";
+import _ from "lodash";
 import { Controller } from "@/libraries/Controller";
 
 /*

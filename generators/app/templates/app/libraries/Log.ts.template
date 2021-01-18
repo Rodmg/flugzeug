@@ -1,6 +1,6 @@
-import * as winston from "winston";
-import * as fs from "fs";
-import * as path from "path";
+import winston from "winston";
+import fs from "fs";
+import path from "path";
 import { config } from "@/config";
 
 // Setting up logger

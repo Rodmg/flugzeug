@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+import Joi from "joi";
 import { Request, Response } from "express";
 import { Controller } from "@/libraries/Controller";
 

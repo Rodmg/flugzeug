@@ -12,7 +12,7 @@ import {
 } from "sequelize-typescript";
 import { BaseModel } from "@/libraries/BaseModel";
 import { Profile } from "./Profile";
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 
 @Table({
   tableName: "user",
