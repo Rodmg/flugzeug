@@ -220,6 +220,8 @@ module.exports = class extends Generator {
   }
 
   end() {
+    // Make sure code is correctly formatted after generation
+    this.spawnCommandSync("npm", ["run", "format"]);
     // Initialize git repo
     this.spawnCommandSync("git", ["init", "--quiet"]);
     this.spawnCommandSync("git", ["add", "."]);

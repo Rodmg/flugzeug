@@ -87,11 +87,18 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.templatePath("controllerTemplate.ts"),
       this.destinationPath(
-        `app/controllers/${this.props.apiVersion}/${
-          this.props.controllerName
-        }.ts`,
+        `app/controllers/${this.props.apiVersion}/${this.props.controllerName}.ts`,
       ),
       this.props,
     );
+  }
+
+  end() {
+    // Make sure code is correctly formatted after generation
+    this.spawnCommandSync("npx", [
+      "prettier",
+      "--write",
+      `app/controllers/${this.props.apiVersion}/${this.props.controllerName}.ts`,
+    ]);
   }
 };

@@ -16,7 +16,8 @@
     "sql": "gulp sql",
     "start": "node --require source-map-support/register dist/main.js",
     "test": "gulp && mocha dist/test --recursive",
-    "lint": "tsc --noEmit && eslint \"app/**/*.{js,ts}\" --fix"
+    "lint": "tsc --noEmit && eslint \"app/**/*.{js,ts}\" --fix",
+    "format": "prettier --write \"app/**/*.{js,ts}\""
   },
   "author": "<%- author %>",
   "license": "UNLICENSED",
