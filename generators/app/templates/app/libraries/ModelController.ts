@@ -87,8 +87,8 @@ export function sanitizeAttributes(attributes: any): any {
   if (!Array.isArray(attributes.exclude)) attributes.exclude = [];
 
   // only string attributes
-  attributes.include = attributes.include.map(a => String(a));
-  attributes.exclude = attributes.exclude.map(a => String(a));
+  attributes.include = attributes.include.map((a) => String(a));
+  attributes.exclude = attributes.exclude.map((a) => String(a));
 
   return attributes;
 }
@@ -113,7 +113,7 @@ export function parseWhere(req: Request): any {
     // Omit built-in runtime config (like query modifiers)
     where = _.omit(where, ["limit", "skip", "sort"]);
     // Omit any params w/ undefined values
-    where = _.omitBy(where, p => p === undefined);
+    where = _.omitBy(where, (p) => p === undefined);
   }
 
   // Merge with req.session.where (Useful for enforcing policies)
@@ -244,7 +244,7 @@ export function parseInclude(req: Request, model: ModelCtor<any>): Array<any> {
         }
 
         const result: any = tryWithFilter(modelName, model);
-        result.include = content.map(i =>
+        result.include = content.map((i) =>
           parseIncludeRecursive(i, result.model),
         );
 
@@ -252,11 +252,11 @@ export function parseInclude(req: Request, model: ModelCtor<any>): Array<any> {
       }
     };
 
-    let preparedInclude = include.map(item =>
+    let preparedInclude = include.map((item) =>
       parseIncludeRecursive(item, model),
     );
     // Merge with req.session.include (Useful for enforcing policies)
-    preparedInclude = _.merge(preparedInclude, req.session?.include || {});
+    preparedInclude = _.union(preparedInclude, req.session?.include || {});
     return preparedInclude;
   } catch (err) {
     log.error("Error on parseInclude:", err);
@@ -286,7 +286,7 @@ export function parseAttributes(req: Request): any {
 
   // remove 'exclude' values from 'includes' if neccesary and ignored if no values
   attributes.include = attributes.include.filter(
-    a => !attributes.exclude.includes(a),
+    (a) => !attributes.exclude.includes(a),
   );
   if (attributes.include.length == 0)
     attributes = _.pick(attributes, "exclude");
