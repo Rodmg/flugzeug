@@ -1,3 +1,14 @@
+# Flugzeug 2.1.0
+
+- Fix merging query includes and session includes in ModelController
+- Make sure linting settings are consistent on Windows and unix
+- Update dependencies to fix audited vulnerabilities
+- Added JWT_EXPIRY_HOURS Environment variable to specify the Access JWT token expiry time
+
+**Breaking Changes:**
+
+- Fix JWT expiry logic to adhere to standard, previously expiry times where on milliseconds, changed to seconds as per the standard
+
 # Flugzeug 2.0.0
 
 - Removed mailgun support for EmailService in favor of generic SMTP configuration
