@@ -33,7 +33,7 @@ flug controller
 flug service
 ```
 
-## Development
+## Development
 
 For testing the generator during development, use:
 
