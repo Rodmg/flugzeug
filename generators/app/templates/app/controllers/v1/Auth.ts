@@ -83,11 +83,9 @@ export class AuthController extends Controller {
   public createToken(user: User, type: string): Token {
     const expiryUnit: string = config.jwt[type].expiry.unit;
     const expiryLength: number = config.jwt[type].expiry.length;
-    const expires = moment()
-      .add(expiryLength, expiryUnit as moment.unitOfTime.DurationConstructor)
-      .valueOf();
-    const issued = Date.now();
-    const expires_in = (expires - issued) / 1000; // seconds
+    const expires = moment().add(expiryLength, expiryUnit).valueOf() / 1000;
+    const issued = Date.now() / 1000;
+    const expires_in = expires - issued; // seconds
 
     const token = jwt.sign(
       {
@@ -142,7 +140,7 @@ export class AuthController extends Controller {
           name: name || user.email,
         },
       )
-      .then(info => {
+      .then((info) => {
         log.debug("Sending password recovery email to:", user.email, info);
         return info;
       });
@@ -155,7 +153,7 @@ export class AuthController extends Controller {
       .sendEmail(user.email, subject, "password_changed", user.profile.locale, {
         name: name || user.email,
       })
-      .then(info => {
+      .then((info) => {
         log.debug("Sending password changed email to:", user.email, info);
         return info;
       });
@@ -166,7 +164,7 @@ export class AuthController extends Controller {
       where: { email: email },
       include: [{ model: Profile, as: "profile" }],
     })
-      .then(user => {
+      .then((user) => {
         if (!user) {
           throw { error: "notFound", msg: "Email not found" };
         }
@@ -179,7 +177,7 @@ export class AuthController extends Controller {
           user: user,
         };
       })
-      .then(emailInfo => {
+      .then((emailInfo) => {
         return this.sendEmailNewPassword(
           emailInfo.user,
           emailInfo.token,
@@ -193,7 +191,7 @@ export class AuthController extends Controller {
     password: string,
   ): Promise<AuthCredentials> {
     return this.validateJWT(token, "reset")
-      .then(decodedjwt => {
+      .then((decodedjwt) => {
         if (!decodedjwt) {
           throw { error: "unauthorized", msg: "Invalid Token" };
         }
@@ -205,7 +203,7 @@ export class AuthController extends Controller {
           where: { id: decodedjwt.id },
           include: [{ model: Profile, as: "profile" }],
         })
-          .then(user => {
+          .then((user) => {
             if (!user) {
               throw { error: "unauthorized" };
             }
@@ -213,7 +211,7 @@ export class AuthController extends Controller {
             user.password = password;
             return user.save();
           })
-          .then(result => {
+          .then((result) => {
             if (!result) {
               throw { error: "serverError", msg: null };
             }
@@ -221,8 +219,8 @@ export class AuthController extends Controller {
             // Blacklist JWT asynchronously
             JWTBlacklist.create({
               token: token,
-              expires: decodedjwt.exp,
-            }).catch(err => {
+              expires: new Date(decodedjwt.exp * 1000),
+            }).catch((err) => {
               log.error(err);
             });
 
@@ -231,12 +229,12 @@ export class AuthController extends Controller {
             const credentials = this.getCredentials(results.user);
             return credentials;
           })
-          .catch(err => {
+          .catch((err) => {
             log.error(err);
             throw { error: "badRequest", msg: err };
           });
       })
-      .catch(err => {
+      .catch((err) => {
         throw { error: "unauthorized", msg: err };
       });
   }
@@ -249,7 +247,7 @@ export class AuthController extends Controller {
     } catch (err) {
       return Promise.reject(err);
     }
-    const reqTime = Date.now();
+    const reqTime = Date.now() / 1000;
     // Check if token expired
     if (decodedjwt.exp <= reqTime) {
       return Promise.reject("Token expired");
@@ -271,12 +269,12 @@ export class AuthController extends Controller {
 
     // Check if blacklisted
     return JWTBlacklist.findOne({ where: { token: token } })
-      .then(result => {
+      .then((result) => {
         // if exists in blacklist, reject
         if (result != null) return Promise.reject("This Token is blacklisted.");
         return decodedjwt;
       })
-      .catch(err => {
+      .catch((err) => {
         return Promise.reject(err);
       });
   }
@@ -295,14 +293,14 @@ export class AuthController extends Controller {
       where: { email: email },
       include: [{ model: Profile, as: "profile" }],
     })
-      .then(user => {
+      .then((user) => {
         if (!user) {
           return false;
         }
         results.user = user;
         return user.authenticate(password);
       })
-      .then(authenticated => {
+      .then((authenticated) => {
         if (authenticated === true) {
           const credentials = this.getCredentials(results.user);
           return Controller.ok(res, credentials);
@@ -310,7 +308,7 @@ export class AuthController extends Controller {
           return Controller.unauthorized(res);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         log.error(err);
         return Controller.badRequest(res);
       });
@@ -324,13 +322,13 @@ export class AuthController extends Controller {
     // Put token in blacklist
     JWTBlacklist.create({
       token: token,
-      expires: decodedjwt.exp,
+      expires: new Date(decodedjwt.exp * 1000),
     })
       .then(() => {
         Controller.ok(res);
         return null;
       })
-      .catch(err => {
+      .catch((err) => {
         return Controller.serverError(res, err);
       });
   }
@@ -343,12 +341,12 @@ export class AuthController extends Controller {
     // Put refresh token in blacklist
     JWTBlacklist.create({
       token: refreshToken,
-      expires: decodedjwt.exp,
+      expires: new Date(decodedjwt.exp * 1000),
     })
       .then(() => {
         return User.findOne({ where: { id: reqUser.id } });
       })
-      .then(user => {
+      .then((user) => {
         if (!user) {
           return Controller.unauthorized(res);
         }
@@ -356,7 +354,7 @@ export class AuthController extends Controller {
         const credentials = this.getCredentials(user);
         return Controller.ok(res, credentials);
       })
-      .catch(err => {
+      .catch((err) => {
         return Controller.serverError(res, err);
       });
   }
@@ -377,13 +375,13 @@ export class AuthController extends Controller {
 
     let user: User;
     User.create(newUser)
-      .then(result => {
+      .then((result) => {
         // We need to do another query because before the profile wasn't ready
         return User.findOne({
           where: { id: result.id },
           include: [{ model: Profile, as: "profile" }],
         })
-          .then(result => {
+          .then((result) => {
             user = result;
             // Set extra params:
             if (locale != null) user.profile.locale = locale;
@@ -395,7 +393,7 @@ export class AuthController extends Controller {
             return Controller.ok(res, credentials);
           });
       })
-      .catch(err => {
+      .catch((err) => {
         if (
           err.errors != null &&
           err.errors.length &&
@@ -419,8 +417,8 @@ export class AuthController extends Controller {
 
     if (!_.isUndefined(token) && !_.isUndefined(password)) {
       return this.handleResetChPass(token, password)
-        .then(credentials => Controller.ok(res, credentials))
-        .catch(err => {
+        .then((credentials) => Controller.ok(res, credentials))
+        .catch((err) => {
           log.error(err);
           if (err.error == "badRequest")
             return Controller.badRequest(res, err.msg);
@@ -435,11 +433,11 @@ export class AuthController extends Controller {
     const email: string = req.body.email;
     if (!_.isUndefined(email)) {
       return this.handleResetEmail(email)
-        .then(info => {
+        .then((info) => {
           log.info(info);
           Controller.ok(res);
         })
-        .catch(err => {
+        .catch((err) => {
           log.error(err);
           if (err.error == "badRequest")
             return Controller.badRequest(res, err.msg);
@@ -458,13 +456,13 @@ export class AuthController extends Controller {
     if (_.isUndefined(token)) return Controller.unauthorized(res);
     // Decode token
     this.validateJWT(token, "reset")
-      .then(decodedjwt => {
+      .then((decodedjwt) => {
         if (decodedjwt)
           res.redirect(`${config.urls.base}/recovery/#/reset?token=${token}`);
         else Controller.unauthorized(res);
         return null;
       })
-      .catch(err => {
+      .catch((err) => {
         return Controller.unauthorized(res, err);
       });
   }
@@ -496,7 +494,7 @@ export class AuthController extends Controller {
         results.user = user;
         return user.authenticate(oldPass);
       })
-      .then(authenticated => {
+      .then((authenticated) => {
         if (authenticated === true) {
           results.user.password = newPass;
           return results.user.save();
@@ -504,12 +502,12 @@ export class AuthController extends Controller {
           return Controller.unauthorized(res);
         }
       })
-      .then(result => {
+      .then((result) => {
         if (!result) return Controller.serverError(res);
         const credentials = this.getCredentials(results.user);
         return Controller.ok(res, credentials);
       })
-      .catch(err => {
+      .catch((err) => {
         log.error(err);
         return Controller.badRequest(res);
       });

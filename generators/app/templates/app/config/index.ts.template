@@ -12,8 +12,10 @@ export const config = {
       process.env.JWT_SECRET || "<%- jwt_secret %>",
     access: {
       expiry: {
-        unit: "months",
-        length: 2,
+        unit: "hours",
+        length: process.env.JWT_EXPIRY_HOURS
+          ? parseInt(process.env.JWT_EXPIRY_HOURS)
+          : 30 * 24,
       },
       subject: "access",
       audience: "user",
@@ -21,7 +23,7 @@ export const config = {
     refresh: {
       expiry: {
         unit: "months",
-        length: 12,
+        length: 6,
       },
       subject: "refresh",
       audience: "user",
