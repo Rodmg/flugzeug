@@ -81,7 +81,8 @@ export class AuthController extends Controller {
   }
 
   public createToken(user: User, type: string): Token {
-    const expiryUnit: string = config.jwt[type].expiry.unit;
+    const expiryUnit: moment.unitOfTime.DurationConstructor =
+      config.jwt[type].expiry.unit;
     const expiryLength: number = config.jwt[type].expiry.length;
     const expires = moment().add(expiryLength, expiryUnit).valueOf() / 1000;
     const issued = Date.now() / 1000;
