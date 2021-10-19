@@ -7,6 +7,24 @@ export const config = {
 
   env: process.env.NODE_ENV || "development",
 
+  auth: {
+    microsoft: {
+      clientID: process.env.MICROSOFT_CLIENT_ID,
+      tenantID: process.env.MICROSOFT_TENANT_ID,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+      callbackURL: process.env.MICROSOFT_CALLBACK_URL,
+      registerCallbackURL: process.env.MICROSOFT_REGISTER_CALLBACK_URL,
+    },
+    google: {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      registerCallbackURL: process.env.GOOGLE_REGISTER_CALLBACK_URL,
+    },
+    home_page: process.env.HOME_PAGE,
+    login_page: process.env.LOGIN_PAGE,
+    register_page: process.env.REGISTER_PAGE,
+  },
   jwt: {
     secret:
       process.env.JWT_SECRET || "<%- jwt_secret %>",

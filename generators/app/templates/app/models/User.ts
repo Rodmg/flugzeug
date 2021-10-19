@@ -9,10 +9,20 @@ import {
   BeforeUpdate,
   BeforeBulkUpdate,
   BeforeDestroy,
+  HasMany,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { BaseModel } from "@/libraries/BaseModel";
 import { Profile } from "./Profile";
 import bcrypt from "bcrypt";
+import { UserRole } from "./UserRole";
+import { Role } from "./Role";
+
+export enum AuthType {
+  Email = "email",
+  Microsoft = "microsoft",
+  Google = "google",
+}
 
 @Table({
   tableName: "user",
@@ -27,6 +37,20 @@ export class User extends BaseModel<User> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
+  })
+  firstName: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: null,
+  })
+  lastName: string;
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false,
     unique: true,
     validate: {
@@ -34,6 +58,14 @@ export class User extends BaseModel<User> {
     },
   })
   email: string;
+
+  // If the user can access the platform
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  isActive: boolean;
 
   @Column({
     type: DataType.STRING,
@@ -47,17 +79,32 @@ export class User extends BaseModel<User> {
   password: string;
 
   @Column({
-    type: DataType.ENUM("user", "admin"),
+    type: DataType.ENUM(AuthType.Email, AuthType.Microsoft, AuthType.Google),
     allowNull: false,
-    defaultValue: "user",
+    defaultValue: AuthType.Email,
   })
-  role: "user" | "admin";
+  authType: AuthType.Email | AuthType.Microsoft | AuthType.Google;
 
   @HasOne(() => Profile, {
     hooks: true,
     onDelete: "CASCADE",
   })
   profile: Profile;
+
+  @HasMany(() => UserRole, {
+    hooks: true,
+    onDelete: "CASCADE",
+  })
+  userRoles: UserRole[];
+
+  @BelongsToMany(() => Role, {
+    through: {
+      model: () => UserRole,
+      unique: false,
+    },
+    constraints: true,
+  })
+  roles: Role[];
 
   @BeforeBulkCreate
   @BeforeBulkUpdate
@@ -110,6 +157,15 @@ export class User extends BaseModel<User> {
       time_zone: "America/Mexico_City",
       userId: this.id,
       locale: "es", // Defaults, this should be changed in auth controller on register.
+    }).then(() => {
+      return null;
+    });
+  }
+
+  addRole(roleId: number): Promise<void> {
+    return UserRole.create({
+      userId: this.id,
+      roleId,
     }).then(() => {
       return null;
     });
