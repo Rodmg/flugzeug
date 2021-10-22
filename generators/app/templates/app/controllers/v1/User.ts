@@ -4,7 +4,7 @@ import { Router } from "express";
 import { validateJWT, isSelfUser } from "@/policies/General";
 import { validateBody } from "@/libraries/Validator";
 import { UserSchema } from "@/validators/User";
-import { AuthMiddleware } from "@/policies/Authentication";
+import { AuthMiddleware } from "@/policies/Authorization";
 
 export class UserController extends ModelController<User> {
   constructor() {

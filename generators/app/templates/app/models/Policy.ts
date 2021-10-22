@@ -2,6 +2,10 @@ import { Table, Column, DataType, HasMany } from "sequelize-typescript";
 import { BaseModel } from "@/libraries/BaseModel";
 import { RolePolicy } from "@/models/RolePolicy";
 
+export interface PermissionData {
+  [key: string]: boolean;
+}
+
 @Table({
   tableName: "policy",
 })
@@ -22,7 +26,7 @@ export class Policy extends BaseModel<Policy> {
     type: DataType.JSON,
     allowNull: false,
   })
-  permission: JSON;
+  permission: PermissionData;
 
   @Column({
     type: DataType.BOOLEAN,
