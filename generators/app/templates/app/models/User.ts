@@ -17,6 +17,7 @@ import { Profile } from "./Profile";
 import bcrypt from "bcrypt";
 import { UserRole } from "./UserRole";
 import { Role } from "./Role";
+import { config } from "@/config";
 
 export enum AuthType {
   Email = "email",
@@ -67,6 +68,14 @@ export class User extends BaseModel<User> {
   })
   isActive: boolean;
 
+  // If the user account has been confirmed after creation
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  isEmailConfirmed: boolean;
+
   @Column({
     type: DataType.STRING,
     allowNull: false,
@@ -114,6 +123,12 @@ export class User extends BaseModel<User> {
 
   @BeforeCreate
   static addPassword(user: User, _options: any) {
+    // Check if we need to confirm the user email
+    const needConfirm = config.emailAuth.requireEmailConfirmation;
+    if (!needConfirm) {
+      user.isActive = true;
+      user.isEmailConfirmed = true;
+    }
     return user.updatePassword();
   }
 

@@ -1,11 +1,11 @@
-import { Controller } from "@/libraries/Controller";
+import { Controller, parseBody } from "@/libraries/Controller";
 import { User } from "@/models/User";
 import { Profile } from "@/models/Profile";
 import { JWTBlacklist } from "@/models/JWTBlacklist";
 import { Request, Response, Router } from "express";
 import { log } from "@/libraries/Log";
 import { config } from "@/config";
-import { validateJWT } from "@/policies/General";
+import { validateJWT, validateJWTOnQueryString } from "@/policies/General";
 import mailer from "@/services/EmailService";
 import _ from "lodash";
 import moment from "moment";
@@ -21,9 +21,11 @@ import {
   AuthChangeSchema,
   AuthLoginSchema,
   AuthRegisterSchema,
+  AuthResendConfirmSchema,
   AuthResetPostSchema,
 } from "@/validators/Auth";
 import { Role } from "@/models/Role";
+import onboardingService from "@/services/OnboardingService";
 
 export class AuthController extends Controller {
   constructor() {
@@ -55,6 +57,18 @@ export class AuthController extends Controller {
     );
     this.router.post("/refresh", validateJWT("refresh"), (req, res) =>
       this.refreshToken(req, res),
+    );
+
+    this.router.get(
+      "/confirm",
+      validateJWTOnQueryString("confirmEmail"),
+      (req, res) => this.confirmEmail(req, res),
+    );
+
+    this.router.post(
+      "/resendconfirm",
+      validateBody(AuthResendConfirmSchema),
+      (req, res) => this.resendConfirmEmail(req, res),
     );
 
     return this.router;
@@ -333,8 +347,9 @@ export class AuthController extends Controller {
       });
   }
 
-  register(req: Request, res: Response) {
+  async register(req: Request, res: Response) {
     const newUser = {
+      name: req.body.name,
       email: req.body.email,
       password: req.body.password,
     };
@@ -344,42 +359,77 @@ export class AuthController extends Controller {
     const timezone: string | undefined = req.body.timezone;
 
     // Validate
-    if (newUser.email == null || newUser.password == null)
+    if (newUser.email == null || newUser.password == null) {
       return Controller.badRequest(res);
+    }
 
-    let user: User;
-    User.create(newUser)
-      .then(result => {
-        // We need to do another query because before the profile wasn't ready
-        return User.findOne({
-          where: { id: result.id },
-          include: [
-            { model: Profile, as: "profile" },
-            { model: Role, as: "roles" },
-          ],
-        })
-          .then(result => {
-            user = result;
-            // Set extra params:
-            if (locale != null) user.profile.locale = locale;
-            if (timezone != null) user.profile.time_zone = timezone;
-            return user.profile.save();
-          })
-          .then(() => {
-            const credentials = authService.getCredentials(user);
-            return Controller.ok(res, credentials);
-          });
-      })
-      .catch(err => {
-        if (
-          err.errors != null &&
-          err.errors.length &&
-          err.errors[0].type === "unique violation" &&
-          err.errors[0].path === "email"
-        ) {
-          return Controller.forbidden(res, "email in use");
-        } else if (err) return Controller.serverError(res, err);
+    try {
+      if (config.emailAuth.requireEmailConfirmation) {
+        // Validate if user exists but hasn't been confirmed
+        const user = await User.findOne({
+          where: {
+            email: newUser.email,
+            isActive: false,
+            isEmailConfirmed: false,
+          },
+        });
+
+        if (user != null) {
+          // User existis but email hasn't been confirmed
+          return Controller.conflict(res, "email pending validation");
+        }
+      }
+
+      let user: User = await onboardingService.createUser(
+        newUser.name,
+        newUser.email,
+        newUser.password,
+      );
+      // We need to do another query because before the profile wasn't ready
+      // We need to do another query because before the role wasn't ready
+      user = await User.findOne({
+        where: { id: user.id },
+        include: [
+          { model: Profile, as: "profile" },
+          { model: Role, as: "roles" },
+        ],
       });
+      // Set extra params:
+      if (locale != null) user.profile.locale = locale;
+      if (timezone != null) user.profile.time_zone = timezone;
+      await user.profile.save();
+
+      if (config.emailAuth.requireEmailConfirmation) {
+        // Send Email Confirmation email
+        try {
+          const info = await this.handleSendConfirmEmail(user.email);
+          log.info(info);
+        } catch (err) {
+          log.error(err);
+          if (err.error == "badRequest")
+            return Controller.badRequest(res, err.msg);
+          if (err.error == "notFound") return Controller.notFound(res, err.msg);
+          if (err.error == "serverError")
+            return Controller.serverError(res, err.msg);
+          return Controller.serverError(res);
+        }
+        return Controller.ok(res, "Please check your email inbox.");
+      }
+
+      const credentials = authService.getCredentials(user);
+      return Controller.ok(res, credentials);
+    } catch (err) {
+      if (
+        err.errors != null &&
+        err.errors.length &&
+        err.errors[0].type === "unique violation" &&
+        err.errors[0].path === "email"
+      ) {
+        return Controller.forbidden(res, "email in use");
+      } else if (err) {
+        return Controller.serverError(res, err);
+      }
+    }
   }
 
   /*
@@ -491,6 +541,105 @@ export class AuthController extends Controller {
         log.error(err);
         return Controller.badRequest(res);
       });
+  }
+
+  async confirmEmail(req: Request, res: Response) {
+    const userId = req.session.jwt.id;
+    const email = req.session.user.email;
+    if (userId == null) {
+      return res.redirect(
+        `${config.emailAuth.emailConfirmUrl}?success=false&email=${email}`,
+      );
+    }
+
+    const user = await User.findByPk(userId);
+    if (user == null) {
+      return res.redirect(
+        `${config.emailAuth.emailConfirmUrl}?success=false&email=${email}`,
+      );
+    }
+    user.isActive = true;
+    user.isEmailConfirmed = true;
+    await user.save();
+    return res.redirect(
+      `${config.emailAuth.emailConfirmUrl}?success=true&email=${email}`,
+    );
+  }
+
+  async resendConfirmEmail(req: Request, res: Response) {
+    const { email } = parseBody(req);
+
+    if (email == null) {
+      return Controller.badRequest(res);
+    }
+
+    if (!config.emailAuth.requireEmailConfirmation) {
+      return Controller.notFound(res);
+    }
+
+    // Validate if user exists but hasn't been confirmed
+    const user = await User.findOne({
+      where: {
+        email,
+        isActive: false,
+        isEmailConfirmed: false,
+      },
+    });
+
+    if (!user) {
+      return Controller.notFound(res);
+    }
+
+    try {
+      const info = await this.handleSendConfirmEmail(user.email);
+      log.info(info);
+    } catch (err) {
+      log.error(err);
+      if (err.error == "badRequest") return Controller.badRequest(res, err.msg);
+      if (err.error == "notFound") return Controller.notFound(res, err.msg);
+      if (err.error == "serverError")
+        return Controller.serverError(res, err.msg);
+      return Controller.serverError(res);
+    }
+    return Controller.ok(res, "Please check your email inbox.");
+  }
+
+  async handleSendConfirmEmail(email: string): Promise<any> {
+    const user = await User.findOne({
+      where: { email: email },
+      include: [
+        { model: Profile, as: "profile" },
+        { model: Role, as: "roles" },
+      ],
+    });
+    if (!user) {
+      throw { error: "notFound", msg: "Email not found" };
+    }
+    // Create reset token
+    const token = authService.createToken(user, "confirmEmail");
+    return this.sendEmailConfirm(user, token.token, user.name);
+  }
+
+  private async sendEmailConfirm(
+    user: User,
+    token: string,
+    name?: string,
+  ): Promise<any> {
+    const subject = "Welcome!, please verify your email address.";
+
+    const info = await mailer.sendEmail(
+      user.email,
+      subject,
+      "email_confirm",
+      user.profile.locale,
+      {
+        url: `${config.urls.baseApi}/emailauth/confirm?token=${token}`,
+        name: name || user.email,
+        email: user.email,
+      },
+    );
+    log.debug("Sending email confirm email to:", user.email, info);
+    return info;
   }
 }
 

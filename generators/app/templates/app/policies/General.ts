@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
-import { default as auth } from "@/controllers/v1/Auth";
 import _ from "lodash";
 import { Controller } from "@/libraries/Controller";
+import authService from "@/services/AuthService";
+
+const propertyMapper = {
+  createdById: "id",
+  updatedById: "id",
+};
 
 /*
   Validates a JWT
@@ -26,7 +31,34 @@ export function validateJWT(type: string) {
       }
     }
 
-    auth
+    authService
+      .validateJWT(token, type)
+      .then(decoded => {
+        if (!decoded) {
+          Controller.unauthorized(res, "Invalid Token");
+          return null;
+        }
+        req.session.jwt = decoded;
+        req.session.jwtstring = token;
+        req.session.user = _.pick(decoded, ["id", "email"]);
+        next();
+        return null;
+      })
+      .catch(err => {
+        Controller.unauthorized(res, err);
+      });
+  };
+}
+
+export function validateJWTOnQueryString(type: string, key = "token") {
+  return (req: Request, res: Response, next: Function) => {
+    const token = req.query[key] as string;
+    if (token == null) {
+      Controller.unauthorized(res, "No Token Present");
+      return null;
+    }
+
+    authService
       .validateJWT(token, type)
       .then(decoded => {
         if (!decoded) {
@@ -94,6 +126,15 @@ export function appendUser(key = "userId") {
   };
 }
 
+export function appendMiddleware(...properties: string[]) {
+  return (req: Request, res: Response, next: Function) => {
+    properties.forEach(property => {
+      req.body[property] = req.session.jwt[propertyMapper[property]];
+    });
+    next();
+  };
+}
+
 /*
   Strips nested objects, substituting with their id (if any)
 */
@@ -127,6 +168,19 @@ export function isSelfUser() {
     const id = req.session.jwt.id;
     if (id == null) return Controller.unauthorized(res);
     if (id !== parseInt(req.params.id)) return Controller.unauthorized(res);
+    next();
+  };
+}
+
+/*
+  Checks if the requested user is not self
+  ** Only applicable to UserController
+*/
+export function isNotSelfUser() {
+  return (req: Request, res: Response, next: Function) => {
+    const id = req.session.jwt.id;
+    if (id == null) return Controller.unauthorized(res);
+    if (id === parseInt(req.params.id)) return Controller.unauthorized(res);
     next();
   };
 }
