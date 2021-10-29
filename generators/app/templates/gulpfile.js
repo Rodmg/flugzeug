@@ -17,7 +17,7 @@ function execute(params) {
   node = spawn("node", params, {
     stdio: "inherit",
   });
-  node.on("close", function(code) {
+  node.on("close", function (code) {
     if (code === 8) {
       gulp.log("Error detected, waiting for changes...");
     }
@@ -46,7 +46,7 @@ function compile() {
   return tsResult.js
     .pipe(
       sourcemaps.write(".", {
-        sourceRoot: function(file) {
+        sourceRoot: function (file) {
           return file.cwd + "/app";
         },
       }),
@@ -116,13 +116,23 @@ function doMigrate() {
   ]);
 }
 const migrate = gulp.series(compile, doMigrate);
+function doDocumentation() {
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/libraries/documentation/makeDocumentation.js",
+    ,
+  ]);
+}
+
+const documentation = gulp.series(compile, doDocumentation);
 
 const test = gulp.series(build, shell.task("npm test"));
 
 const production = gulp.series(build);
 
 // clean up if an error goes unhandled.
-process.on("exit", function() {
+process.on("exit", function () {
   if (node) node.kill();
 });
 
@@ -139,5 +149,6 @@ module.exports = {
   migrate,
   test,
   production,
+  documentation,
   default: production,
 };

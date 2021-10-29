@@ -1,11 +1,10 @@
-import { Controller } from "@/libraries/Controller";
+import { BaseController } from "@/libraries/BaseController";
 import { User } from "@/models/User";
 import { Profile } from "@/models/Profile";
 import { JWTBlacklist } from "@/models/JWTBlacklist";
-import { Request, Response, Router } from "express";
+import { Request, Response } from "express";
 import { log } from "@/libraries/Log";
 import { config } from "@/config";
-import { validateJWT } from "@/policies/General";
 import mailer from "@/services/EmailService";
 import _ from "lodash";
 import moment from "moment";
@@ -16,8 +15,21 @@ import {
   AuthChangeSchema,
   AuthLoginSchema,
   AuthRegisterSchema,
-  AuthResetPostSchema,
 } from "@/validators/Auth";
+import {
+  Controller,
+  Get,
+  Post,
+  Auth,
+  Middlewares,
+} from "@/libraries/routes/decorators";
+import {
+  ApiDocs,
+  ApiDocsRouteSummary,
+  ApiDocsSchemaResponse,
+  ApiDocsSchemaRequest,
+} from "@/libraries/documentation/decorators";
+import { address } from "ip";
 
 export interface Token {
   token: string;
@@ -44,41 +56,342 @@ export interface JWTPayload {
   email: string;
   role: User["role"];
 }
+@Controller("auth")
+// @ApiDocs()
+export class AuthController extends BaseController {
+  @ApiDocsRouteSummary("Log in with a email and password")
+  @ApiDocsSchemaRequest("authLoginRequest", {
+    type: "object",
+    properties: {
+      email: {
+        type: "string",
+        example: "example@email.com",
+      },
+      password: {
+        type: "string",
+        example: "Password123",
+      },
+    },
+  })
+  @ApiDocsSchemaResponse(
+    "authLoginResponse",
+    {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          example:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwic3ViIjoiYWNjZXNzIiwiYXVkIjoidXNlciIsImV4cCI6MTYzODExMTA3MS40NDQsImlhdCI6MTYzNTUxOTA3MS40NDUsImp0aSI6Ijc0ZWFkZjc0LTk1ZWEtNDQ4YS1iZTA3LWZkYjc2Zjc4ZjRjNCIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4ifQ._90EEQMvpAC6bgSr-DmPwwLJ9O3OTw5GqVwxwHLT82Q",
+        },
+        expires: {
+          type: "number",
+          example: 1638111071.444,
+        },
 
-export class AuthController extends Controller {
-  constructor() {
-    super();
-    this.name = "auth";
+        refresh_token: {
+          type: "object",
+          properties: {
+            token: {
+              type: "string",
+              example:
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwic3ViIjoicmVmcmVzaCIsImF1ZCI6InVzZXIiLCJleHAiOjE2NTEyNDM4NzEuNDQ4LCJpYXQiOjE2MzU1MTkwNzEuNDQ4LCJqdGkiOiI0NzU3ZDg2NS01YzYwLTQ1OGEtYjc2MC1jY2FkNTAzOTFlNDgiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIn0.L93FVp9V5jPL2lq3hW7m3B9kKYC6I3KZys_YgO9QTM",
+            },
+            expires: {
+              type: "number",
+              example: 1651243871.448,
+            },
+            expires_in: {
+              type: "number",
+              example: 15724800,
+            },
+          },
+        },
+        user: {
+          $ref: `#/components/schemas/UserResponse`,
+        },
+        profile: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 1,
+            },
+            time_zone: {
+              type: "string",
+              example: "America/Mexico_City",
+            },
+            locale: {
+              type: "string",
+              example: "es",
+            },
+            userId: {
+              type: "integer",
+              example: 1,
+            },
+            createdAt: {
+              type: "string",
+              example: "2021-10-25T22:12:00.826Z",
+            },
+            updatedAt: {
+              type: "string",
+              example: "2021-10-25T22:12:00.826Z",
+            },
+          },
+        },
+      },
+    },
+    200,
+  )
+  @Post("/login")
+  @Middlewares([validateBody(AuthLoginSchema)])
+  login = (req: Request, res: Response) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    // Validate
+    if (email == null || password == null)
+      return BaseController.badRequest(res);
+
+    const results = {
+      user: null,
+    };
+
+    User.findOne({
+      where: { email: email },
+      include: [{ model: Profile, as: "profile" }],
+    })
+      .then((user) => {
+        if (!user) {
+          return false;
+        }
+        results.user = user;
+        return user.authenticate(password);
+      })
+      .then((authenticated) => {
+        if (authenticated === true) {
+          const credentials = this.getCredentials(results.user);
+          return BaseController.ok(res, credentials);
+        } else {
+          return BaseController.unauthorized(res);
+        }
+      })
+      .catch((err) => {
+        log.error(err);
+        return BaseController.badRequest(res);
+      });
+  };
+
+  @Post("/logout")
+  @Auth()
+  logout = (req: Request, res: Response) => {
+    const token: string = req.session.jwtstring;
+    const decodedjwt: JWTPayload = req.session.jwt;
+    if (_.isUndefined(token)) return BaseController.unauthorized(res);
+    if (_.isUndefined(decodedjwt)) return BaseController.unauthorized(res);
+    // Put token in blacklist
+    JWTBlacklist.create({
+      token: token,
+      expires: new Date(decodedjwt.exp * 1000),
+    })
+      .then(() => {
+        BaseController.ok(res);
+        return null;
+      })
+      .catch((err) => {
+        return BaseController.serverError(res, err);
+      });
+  };
+
+  @Post("/register")
+  @Middlewares([validateBody(AuthRegisterSchema)])
+  register = (req: Request, res: Response) => {
+    const newUser = {
+      email: req.body.email,
+      password: req.body.password,
+    };
+
+    // Optional extra params:
+    const locale: Profile["locale"] | undefined = req.body.locale;
+    const timezone: string | undefined = req.body.timezone;
+
+    // Validate
+    if (newUser.email == null || newUser.password == null)
+      return BaseController.badRequest(res);
+
+    let user: User;
+    User.create(newUser)
+      .then((result) => {
+        // We need to do another query because before the profile wasn't ready
+        return User.findOne({
+          where: { id: result.id },
+          include: [{ model: Profile, as: "profile" }],
+        })
+          .then((result) => {
+            user = result;
+            // Set extra params:
+            if (locale != null) user.profile.locale = locale;
+            if (timezone != null) user.profile.time_zone = timezone;
+            return user.profile.save();
+          })
+          .then(() => {
+            const credentials = this.getCredentials(user);
+            return BaseController.ok(res, credentials);
+          });
+      })
+      .catch((err) => {
+        if (
+          err.errors != null &&
+          err.errors.length &&
+          err.errors[0].type === "unique violation" &&
+          err.errors[0].path === "email"
+        ) {
+          return BaseController.forbidden(res, "email in use");
+        } else if (err) return BaseController.serverError(res, err);
+      });
+  };
+
+  @Get("/reset")
+  resetGet = (req: Request, res: Response) => {
+    const token: string = req.query.token as string;
+    if (_.isUndefined(token)) return BaseController.unauthorized(res);
+    // Decode token
+    this.validateJWT(token, "reset")
+      .then((decodedjwt) => {
+        if (decodedjwt)
+          res.redirect(`${config.urls.base}/recovery/#/reset?token=${token}`);
+        else BaseController.unauthorized(res);
+        return null;
+      })
+      .catch((err) => {
+        return BaseController.unauthorized(res, err);
+      });
+  };
+
+  /*
+    This can serve two different use cases:
+      1. Request sending of recovery token via email (body: { email: '...' })
+      2. Set new password (body: { token: 'mytoken', password: 'newpassword' })
+  */
+  @Post("/reset")
+  @Middlewares([validateBody(AuthRegisterSchema)])
+  resetPost = (req: Request, res: Response) => {
+    // Validate if case 2
+    const token: string = req.body.token;
+    const password: string = req.body.password;
+
+    if (!_.isUndefined(token) && !_.isUndefined(password)) {
+      return this.handleResetChPass(token, password)
+        .then((credentials) => BaseController.ok(res, credentials))
+        .catch((err) => {
+          log.error(err);
+          if (err.error == "badRequest")
+            return BaseController.badRequest(res, err.msg);
+          if (err.error == "notFound")
+            return BaseController.notFound(res, err.msg);
+          if (err.error == "serverError")
+            return BaseController.serverError(res, err.msg);
+          return BaseController.serverError(res);
+        });
+    }
+
+    // Validate case 1
+    const email: string = req.body.email;
+    if (!_.isUndefined(email)) {
+      return this.handleResetEmail(email)
+        .then((info) => {
+          log.info(info);
+          BaseController.ok(res);
+        })
+        .catch((err) => {
+          log.error(err);
+          if (err.error == "badRequest")
+            return BaseController.badRequest(res, err.msg);
+          if (err.error == "notFound")
+            return BaseController.notFound(res, err.msg);
+          if (err.error == "serverError")
+            return BaseController.serverError(res, err.msg);
+          return BaseController.serverError(res);
+        });
+    }
+
+    return BaseController.badRequest(res);
+  };
+
+  @Post("/change")
+  @Auth()
+  @Middlewares([validateBody(AuthChangeSchema)])
+  changePassword(req: Request, res: Response) {
+    const email = req.body.email;
+    const oldPass = req.body.oldPass;
+    const newPass = req.body.newPass;
+    // Validate
+    if (email == null || oldPass == null || newPass == null)
+      return BaseController.badRequest(res);
+    if (email.length === 0 || oldPass.length === 0 || newPass.length === 0)
+      return BaseController.badRequest(res);
+    // IMPORTANT: Check if email is the same as the one in the token
+    if (email != req.session.jwt.email) return BaseController.unauthorized(res);
+
+    const results = {
+      user: null,
+    };
+
+    User.findOne<User>({
+      where: { id: req.session.jwt.id },
+      include: [{ model: Profile, as: "profile" }],
+    })
+      .then((user: User) => {
+        if (!user) {
+          return false;
+        }
+        results.user = user;
+        return user.authenticate(oldPass);
+      })
+      .then((authenticated) => {
+        if (authenticated === true) {
+          results.user.password = newPass;
+          return results.user.save();
+        } else {
+          return BaseController.unauthorized(res);
+        }
+      })
+      .then((result) => {
+        if (!result) return BaseController.serverError(res);
+        const credentials = this.getCredentials(results.user);
+        return BaseController.ok(res, credentials);
+      })
+      .catch((err) => {
+        log.error(err);
+        return BaseController.badRequest(res);
+      });
   }
 
-  routes(): Router {
-    this.router.post("/login", validateBody(AuthLoginSchema), (req, res) =>
-      this.login(req, res),
-    );
-    this.router.post("/logout", validateJWT("access"), (req, res) =>
-      this.logout(req, res),
-    );
-    this.router.post(
-      "/register",
-      validateBody(AuthRegisterSchema),
-      (req, res) => this.register(req, res),
-    );
-    this.router.get("/reset", (req, res) => this.resetGet(req, res));
-    this.router.post("/reset", validateBody(AuthResetPostSchema), (req, res) =>
-      this.resetPost(req, res),
-    );
-    this.router.post(
-      "/change",
-      validateJWT("access"),
-      validateBody(AuthChangeSchema),
-      (req, res) => this.changePassword(req, res),
-    );
-    this.router.post("/refresh", validateJWT("refresh"), (req, res) =>
-      this.refreshToken(req, res),
-    );
-
-    return this.router;
-  }
+  @Post("/refresh")
+  @Auth()
+  refreshToken = (req: Request, res: Response) => {
+    // Refresh token has been previously authenticated in validateJwt as refresh token
+    const refreshToken: string = req.session.jwtstring;
+    const decodedjwt: JWTPayload = req.session.jwt;
+    const reqUser: Pick<User, "id" | "email" | "role"> = req.session.user;
+    // Put refresh token in blacklist
+    JWTBlacklist.create({
+      token: refreshToken,
+      expires: new Date(decodedjwt.exp * 1000),
+    })
+      .then(() => {
+        return User.findOne({ where: { id: reqUser.id } });
+      })
+      .then((user) => {
+        if (!user) {
+          return BaseController.unauthorized(res);
+        }
+        // Create new token and refresh token and send
+        const credentials = this.getCredentials(user);
+        return BaseController.ok(res, credentials);
+      })
+      .catch((err) => {
+        return BaseController.serverError(res, err);
+      });
+  };
 
   public createToken(user: User, type: string): Token {
     const expiryUnit: moment.unitOfTime.DurationConstructor =
@@ -277,240 +590,6 @@ export class AuthController extends Controller {
       })
       .catch((err) => {
         return Promise.reject(err);
-      });
-  }
-
-  login(req: Request, res: Response) {
-    const email = req.body.email;
-    const password = req.body.password;
-    // Validate
-    if (email == null || password == null) return Controller.badRequest(res);
-
-    const results = {
-      user: null,
-    };
-
-    User.findOne({
-      where: { email: email },
-      include: [{ model: Profile, as: "profile" }],
-    })
-      .then((user) => {
-        if (!user) {
-          return false;
-        }
-        results.user = user;
-        return user.authenticate(password);
-      })
-      .then((authenticated) => {
-        if (authenticated === true) {
-          const credentials = this.getCredentials(results.user);
-          return Controller.ok(res, credentials);
-        } else {
-          return Controller.unauthorized(res);
-        }
-      })
-      .catch((err) => {
-        log.error(err);
-        return Controller.badRequest(res);
-      });
-  }
-
-  logout(req: Request, res: Response) {
-    const token: string = req.session.jwtstring;
-    const decodedjwt: JWTPayload = req.session.jwt;
-    if (_.isUndefined(token)) return Controller.unauthorized(res);
-    if (_.isUndefined(decodedjwt)) return Controller.unauthorized(res);
-    // Put token in blacklist
-    JWTBlacklist.create({
-      token: token,
-      expires: new Date(decodedjwt.exp * 1000),
-    })
-      .then(() => {
-        Controller.ok(res);
-        return null;
-      })
-      .catch((err) => {
-        return Controller.serverError(res, err);
-      });
-  }
-
-  refreshToken(req: Request, res: Response) {
-    // Refresh token has been previously authenticated in validateJwt as refresh token
-    const refreshToken: string = req.session.jwtstring;
-    const decodedjwt: JWTPayload = req.session.jwt;
-    const reqUser: Pick<User, "id" | "email" | "role"> = req.session.user;
-    // Put refresh token in blacklist
-    JWTBlacklist.create({
-      token: refreshToken,
-      expires: new Date(decodedjwt.exp * 1000),
-    })
-      .then(() => {
-        return User.findOne({ where: { id: reqUser.id } });
-      })
-      .then((user) => {
-        if (!user) {
-          return Controller.unauthorized(res);
-        }
-        // Create new token and refresh token and send
-        const credentials = this.getCredentials(user);
-        return Controller.ok(res, credentials);
-      })
-      .catch((err) => {
-        return Controller.serverError(res, err);
-      });
-  }
-
-  register(req: Request, res: Response) {
-    const newUser = {
-      email: req.body.email,
-      password: req.body.password,
-    };
-
-    // Optional extra params:
-    const locale: Profile["locale"] | undefined = req.body.locale;
-    const timezone: string | undefined = req.body.timezone;
-
-    // Validate
-    if (newUser.email == null || newUser.password == null)
-      return Controller.badRequest(res);
-
-    let user: User;
-    User.create(newUser)
-      .then((result) => {
-        // We need to do another query because before the profile wasn't ready
-        return User.findOne({
-          where: { id: result.id },
-          include: [{ model: Profile, as: "profile" }],
-        })
-          .then((result) => {
-            user = result;
-            // Set extra params:
-            if (locale != null) user.profile.locale = locale;
-            if (timezone != null) user.profile.time_zone = timezone;
-            return user.profile.save();
-          })
-          .then(() => {
-            const credentials = this.getCredentials(user);
-            return Controller.ok(res, credentials);
-          });
-      })
-      .catch((err) => {
-        if (
-          err.errors != null &&
-          err.errors.length &&
-          err.errors[0].type === "unique violation" &&
-          err.errors[0].path === "email"
-        ) {
-          return Controller.forbidden(res, "email in use");
-        } else if (err) return Controller.serverError(res, err);
-      });
-  }
-
-  /*
-    This can serve two different use cases:
-      1. Request sending of recovery token via email (body: { email: '...' })
-      2. Set new password (body: { token: 'mytoken', password: 'newpassword' })
-  */
-  resetPost(req: Request, res: Response) {
-    // Validate if case 2
-    const token: string = req.body.token;
-    const password: string = req.body.password;
-
-    if (!_.isUndefined(token) && !_.isUndefined(password)) {
-      return this.handleResetChPass(token, password)
-        .then((credentials) => Controller.ok(res, credentials))
-        .catch((err) => {
-          log.error(err);
-          if (err.error == "badRequest")
-            return Controller.badRequest(res, err.msg);
-          if (err.error == "notFound") return Controller.notFound(res, err.msg);
-          if (err.error == "serverError")
-            return Controller.serverError(res, err.msg);
-          return Controller.serverError(res);
-        });
-    }
-
-    // Validate case 1
-    const email: string = req.body.email;
-    if (!_.isUndefined(email)) {
-      return this.handleResetEmail(email)
-        .then((info) => {
-          log.info(info);
-          Controller.ok(res);
-        })
-        .catch((err) => {
-          log.error(err);
-          if (err.error == "badRequest")
-            return Controller.badRequest(res, err.msg);
-          if (err.error == "notFound") return Controller.notFound(res, err.msg);
-          if (err.error == "serverError")
-            return Controller.serverError(res, err.msg);
-          return Controller.serverError(res);
-        });
-    }
-
-    return Controller.badRequest(res);
-  }
-
-  resetGet(req: Request, res: Response) {
-    const token: string = req.query.token as string;
-    if (_.isUndefined(token)) return Controller.unauthorized(res);
-    // Decode token
-    this.validateJWT(token, "reset")
-      .then((decodedjwt) => {
-        if (decodedjwt)
-          res.redirect(`${config.urls.base}/recovery/#/reset?token=${token}`);
-        else Controller.unauthorized(res);
-        return null;
-      })
-      .catch((err) => {
-        return Controller.unauthorized(res, err);
-      });
-  }
-
-  changePassword(req: Request, res: Response) {
-    const email = req.body.email;
-    const oldPass = req.body.oldPass;
-    const newPass = req.body.newPass;
-    // Validate
-    if (email == null || oldPass == null || newPass == null)
-      return Controller.badRequest(res);
-    if (email.length === 0 || oldPass.length === 0 || newPass.length === 0)
-      return Controller.badRequest(res);
-    // IMPORTANT: Check if email is the same as the one in the token
-    if (email != req.session.jwt.email) return Controller.unauthorized(res);
-
-    const results = {
-      user: null,
-    };
-
-    User.findOne<User>({
-      where: { id: req.session.jwt.id },
-      include: [{ model: Profile, as: "profile" }],
-    })
-      .then((user: User) => {
-        if (!user) {
-          return false;
-        }
-        results.user = user;
-        return user.authenticate(oldPass);
-      })
-      .then((authenticated) => {
-        if (authenticated === true) {
-          results.user.password = newPass;
-          return results.user.save();
-        } else {
-          return Controller.unauthorized(res);
-        }
-      })
-      .then((result) => {
-        if (!result) return Controller.serverError(res);
-        const credentials = this.getCredentials(results.user);
-        return Controller.ok(res, credentials);
-      })
-      .catch((err) => {
-        log.error(err);
-        return Controller.badRequest(res);
       });
   }
 }

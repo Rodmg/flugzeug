@@ -5,12 +5,12 @@ import { config } from "@/config";
 import { Op, Model, ModelCtor } from "sequelize";
 import _ from "lodash";
 import {
-  Controller,
+  BaseController,
   ControllerErrors,
   parseId,
   parseBody,
   handleServerError,
-} from "./Controller";
+} from "./BaseController";
 
 const OPERATOR_ALIASES = {
   $eq: Op.eq,
@@ -295,25 +295,11 @@ export function parseAttributes(req: Request): any {
   return attributes;
 }
 
-export class ModelController<T extends Model> extends Controller {
+export class ModelController<T extends Model> extends BaseController {
   protected model: ModelCtor<T>;
 
   constructor() {
     super();
-  }
-
-  routes(): Router {
-    // Example routes
-    // WARNING: Routes without policies
-    // You should add policies before your method
-    log.warn("You should add policies before your method");
-    this.router.get("/", (req, res) => this.handleFindAll(req, res));
-    this.router.get("/:id", (req, res) => this.handleFindOne(req, res));
-    this.router.post("/", (req, res) => this.handleCreate(req, res));
-    this.router.put("/:id", (req, res) => this.handleUpdate(req, res));
-    this.router.delete("/:id", (req, res) => this.handleDelete(req, res));
-
-    return this.router;
   }
 
   getModel() {
@@ -405,7 +391,7 @@ export class ModelController<T extends Model> extends Controller {
         attributes,
       });
       const { data, count } = result;
-      return Controller.ok(res, data, { count, limit, offset });
+      return BaseController.ok(res, data, { count, limit, offset });
     } catch (err) {
       handleServerError(err, res);
     }
@@ -419,7 +405,7 @@ export class ModelController<T extends Model> extends Controller {
       const attributes = parseAttributes(req);
       const include = parseInclude(req, this.model);
       const result = await this.findOne(id, { where, include, attributes });
-      return Controller.ok(res, result);
+      return BaseController.ok(res, result);
     } catch (err) {
       handleServerError(err, res);
     }
@@ -429,7 +415,7 @@ export class ModelController<T extends Model> extends Controller {
     try {
       const values = parseBody(req);
       const result = await this.create(values);
-      return Controller.created(res, result);
+      return BaseController.created(res, result);
     } catch (err) {
       handleServerError(err, res);
     }
@@ -446,7 +432,7 @@ export class ModelController<T extends Model> extends Controller {
       const include = parseInclude(req, this.model);
       // Update
       const result = await this.update(id, { where, include }, values);
-      return Controller.ok(res, result);
+      return BaseController.ok(res, result);
     } catch (err) {
       handleServerError(err, res);
     }
@@ -458,7 +444,7 @@ export class ModelController<T extends Model> extends Controller {
       const where = parseWhere(req);
       const id = parseId(req);
       await this.delete(id, { where });
-      return Controller.noContent(res);
+      return BaseController.noContent(res);
     } catch (err) {
       handleServerError(err, res);
     }

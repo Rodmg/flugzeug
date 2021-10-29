@@ -1,0 +1,43 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Docs",
+      "version": "1.0.0"
+    },
+    "host": "localhost:8888",
+    "basePath": "/api/v1",
+    "servers": [
+      {
+        "url": "http://localhost:8888/api/v1",
+        "description": "server description"
+      }
+    ],
+    "components": {
+      "schemas": {
+        "NotFound": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "example": "Not Found"
+            }
+          }
+        },
+        "Unauthorized": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "example": "Unauthorized"
+            },
+            "data": {
+              "type": "string",
+              "example": "No Token Present"
+            }
+          }
+        }
+      }
+    },
+
+    "tags": []
+  }
