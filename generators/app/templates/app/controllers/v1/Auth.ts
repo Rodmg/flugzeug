@@ -57,7 +57,6 @@ export interface JWTPayload {
   role: User["role"];
 }
 @Controller("auth")
-// @ApiDocs()
 export class AuthController extends BaseController {
   @ApiDocsRouteSummary("Log in with a email and password")
   @ApiDocsSchemaRequest("authLoginRequest", {
