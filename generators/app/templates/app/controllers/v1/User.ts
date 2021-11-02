@@ -1,9 +1,10 @@
 import { ModelController } from "@/libraries/ModelController";
 import { User } from "@/models/User";
 import { Router } from "express";
-import { validateJWT, isSelfUser, filterRoles } from "@/policies/General";
+import { validateJWT, isSelfUser } from "@/policies/General";
 import { validateBody } from "@/libraries/Validator";
 import { UserSchema } from "@/validators/User";
+import { AuthMiddleware } from "@/policies/Authorization";
 
 export class UserController extends ModelController<User> {
   constructor() {
@@ -19,14 +20,14 @@ export class UserController extends ModelController<User> {
     this.router.put(
       "/:id",
       validateJWT("access"),
-      filterRoles(["admin"]),
+      AuthMiddleware(),
       validateBody(UserSchema),
       (req, res) => this.handleUpdate(req, res),
     ); // only admin can edit user
     this.router.delete(
       "/:id",
       validateJWT("access"),
-      filterRoles(["admin"]),
+      AuthMiddleware(),
       (req, res) => this.handleDelete(req, res),
     ); // only admin can delete user
 
