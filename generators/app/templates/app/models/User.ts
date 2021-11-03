@@ -46,9 +46,7 @@ export class User extends BaseModel<User> {
     type: DataType.STRING,
     allowNull: false,
     validate: {
-      isLength: {
-        min: 8,
-      },
+      len: [8, 255],
     },
   })
   @ResponseRequired(false)
