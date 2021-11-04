@@ -119,18 +119,6 @@ export function stripNestedObjects() {
 }
 
 /*
-  Only allows certain roles to pass
-*/
-export function filterRoles(roles: Array<string>) {
-  return (req: Request, res: Response, next: Function) => {
-    const role = req.session.jwt.role;
-    if (role == null) return BaseController.unauthorized(res);
-    if (roles.indexOf(role) < 0) return BaseController.unauthorized(res);
-    next();
-  };
-}
-
-/*
   Checks if the requested user is self
   ** Only applicable to UserController
 */

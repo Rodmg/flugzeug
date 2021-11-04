@@ -1,6 +1,6 @@
 import { ModelController } from "@/libraries/ModelController";
 import { User } from "@/models/User";
-import { isSelfUser, filterRoles } from "@/policies/General";
+import { isSelfUser } from "@/policies/General";
 import { validateBody } from "@/libraries/Validator";
 import { UserSchema } from "@/validators/User";
 import { Request, Response } from "express";
@@ -26,7 +26,7 @@ export class UserController extends ModelController<User> {
   @ApiDocsAddSearchParameters()
   @Get("/")
   @Auth()
-  @Middlewares([filterRoles(["admin"])])
+  @Middlewares([AuthMiddleware()])
   getUsers = (req: Request, res: Response) => {
     this.handleFindAll(req, res);
   };
@@ -34,18 +34,15 @@ export class UserController extends ModelController<User> {
   @ApiDocsRouteSummary("Get a User by Id")
   @Get("/:id")
   @Auth()
-  @Middlewares([isSelfUser()])
+  @Middlewares([AuthMiddleware(), isSelfUser()])
   getUser = (req: Request, res: Response) => {
     this.handleFindOne(req, res);
   };
+
   @ApiDocsRouteSummary("Upload a User by Id")
   @Put("/:id")
   @Auth()
-  @Middlewares([
-    AuthMiddleware(),
-    filterRoles(["admin"]),
-    validateBody(UserSchema),
-  ])
+  @Middlewares([AuthMiddleware(), validateBody(UserSchema)])
   updateUser = (req: Request, res: Response) => {
     this.handleUpdate(req, res);
   };
@@ -53,7 +50,7 @@ export class UserController extends ModelController<User> {
   @ApiDocsRouteSummary("Delete User by Id")
   @Delete("/:id")
   @Auth()
-  @Middlewares([AuthMiddleware(), filterRoles(["admin"])])
+  @Middlewares([AuthMiddleware()])
   deleteUser = (req: Request, res: Response) => {
     this.handleDelete(req, res);
   };

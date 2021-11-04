@@ -37,31 +37,6 @@ import {
 import { address } from "ip";
 import { Role } from "@/models/Role";
 
-export interface Token {
-  token: string;
-  expires: number;
-  expires_in: number;
-}
-
-export interface AuthCredentials {
-  token: string;
-  expires: number;
-  refresh_token: Token;
-  user: Pick<User, "id" | "name" | "email" | "role">;
-  profile: Profile;
-}
-
-export interface JWTPayload {
-  id: number;
-  sub: string;
-  aud: string;
-  exp: number;
-  iat: number;
-  nbf?: number;
-  jti: string;
-  email: string;
-  role: User["role"];
-}
 @Controller("auth")
 export class AuthController extends BaseController {
   @ApiDocsRouteSummary("Log in with a email and password")
@@ -152,7 +127,8 @@ export class AuthController extends BaseController {
     const email = req.body.email;
     const password = req.body.password;
     // Validate
-    if (email == null || password == null) return Controller.badRequest(res);
+    if (email == null || password == null)
+      return BaseController.badRequest(res);
 
     const results = {
       user: null,
@@ -175,14 +151,14 @@ export class AuthController extends BaseController {
       .then((authenticated) => {
         if (authenticated === true) {
           const credentials = authService.getCredentials(results.user);
-          return Controller.ok(res, credentials);
+          return BaseController.ok(res, credentials);
         } else {
-          return Controller.unauthorized(res);
+          return BaseController.unauthorized(res);
         }
       })
       .catch((err) => {
         log.error(err);
-        return Controller.badRequest(res);
+        return BaseController.badRequest(res);
       });
   };
 
@@ -191,19 +167,19 @@ export class AuthController extends BaseController {
   logout = (req: Request, res: Response) => {
     const token: string = req.session.jwtstring;
     const decodedjwt: JWTPayload = req.session.jwt;
-    if (_.isUndefined(token)) return Controller.unauthorized(res);
-    if (_.isUndefined(decodedjwt)) return Controller.unauthorized(res);
+    if (_.isUndefined(token)) return BaseController.unauthorized(res);
+    if (_.isUndefined(decodedjwt)) return BaseController.unauthorized(res);
     // Put token in blacklist
     JWTBlacklist.create({
       token: token,
       expires: new Date(decodedjwt.exp * 1000),
     })
       .then(() => {
-        Controller.ok(res);
+        BaseController.ok(res);
         return null;
       })
       .catch((err) => {
-        return Controller.serverError(res, err);
+        return BaseController.serverError(res, err);
       });
   };
 
@@ -221,7 +197,7 @@ export class AuthController extends BaseController {
 
     // Validate
     if (newUser.email == null || newUser.password == null)
-      return Controller.badRequest(res);
+      return BaseController.badRequest(res);
 
     let user: User;
     User.create(newUser)
@@ -243,7 +219,7 @@ export class AuthController extends BaseController {
           })
           .then(() => {
             const credentials = authService.getCredentials(user);
-            return Controller.ok(res, credentials);
+            return BaseController.ok(res, credentials);
           });
       })
       .catch((err) => {
@@ -253,25 +229,25 @@ export class AuthController extends BaseController {
           err.errors[0].type === "unique violation" &&
           err.errors[0].path === "email"
         ) {
-          return Controller.forbidden(res, "email in use");
-        } else if (err) return Controller.serverError(res, err);
+          return BaseController.forbidden(res, "email in use");
+        } else if (err) return BaseController.serverError(res, err);
       });
   };
 
   @Get("/reset")
   resetGet = (req: Request, res: Response) => {
     const token: string = req.query.token as string;
-    if (_.isUndefined(token)) return Controller.unauthorized(res);
+    if (_.isUndefined(token)) return BaseController.unauthorized(res);
     // Decode token
     this.validateJWT(token, "reset")
       .then((decodedjwt) => {
         if (decodedjwt)
           res.redirect(`${config.urls.base}/recovery/#/reset?token=${token}`);
-        else Controller.unauthorized(res);
+        else BaseController.unauthorized(res);
         return null;
       })
       .catch((err) => {
-        return Controller.unauthorized(res, err);
+        return BaseController.unauthorized(res, err);
       });
   };
 
@@ -282,11 +258,6 @@ export class AuthController extends BaseController {
   */
   @Post("/reset")
   @Middlewares([validateBody(AuthRegisterSchema)])
-  /*
-    This can serve two different use cases:
-      1. Request sending of recovery token via email (body: { email: '...' })
-      2. Set new password (body: { token: 'mytoken', password: 'newpassword' })
-  */
   resetPost = (req: Request, res: Response) => {
     // Validate if case 2
     const token: string = req.body.token;
@@ -294,15 +265,16 @@ export class AuthController extends BaseController {
 
     if (!_.isUndefined(token) && !_.isUndefined(password)) {
       return this.handleResetChPass(token, password)
-        .then((credentials) => Controller.ok(res, credentials))
+        .then((credentials) => BaseController.ok(res, credentials))
         .catch((err) => {
           log.error(err);
           if (err.error == "badRequest")
-            return Controller.badRequest(res, err.msg);
-          if (err.error == "notFound") return Controller.notFound(res, err.msg);
+            return BaseController.badRequest(res, err.msg);
+          if (err.error == "notFound")
+            return BaseController.notFound(res, err.msg);
           if (err.error == "serverError")
-            return Controller.serverError(res, err.msg);
-          return Controller.serverError(res);
+            return BaseController.serverError(res, err.msg);
+          return BaseController.serverError(res);
         });
     }
 
@@ -312,20 +284,21 @@ export class AuthController extends BaseController {
       return this.handleResetEmail(email)
         .then((info) => {
           log.info(info);
-          Controller.ok(res);
+          BaseController.ok(res);
         })
         .catch((err) => {
           log.error(err);
           if (err.error == "badRequest")
-            return Controller.badRequest(res, err.msg);
-          if (err.error == "notFound") return Controller.notFound(res, err.msg);
+            return BaseController.badRequest(res, err.msg);
+          if (err.error == "notFound")
+            return BaseController.notFound(res, err.msg);
           if (err.error == "serverError")
-            return Controller.serverError(res, err.msg);
-          return Controller.serverError(res);
+            return BaseController.serverError(res, err.msg);
+          return BaseController.serverError(res);
         });
     }
 
-    return Controller.badRequest(res);
+    return BaseController.badRequest(res);
   };
 
   @Post("/change")
@@ -337,11 +310,11 @@ export class AuthController extends BaseController {
     const newPass = req.body.newPass;
     // Validate
     if (email == null || oldPass == null || newPass == null)
-      return Controller.badRequest(res);
+      return BaseController.badRequest(res);
     if (email.length === 0 || oldPass.length === 0 || newPass.length === 0)
-      return Controller.badRequest(res);
+      return BaseController.badRequest(res);
     // IMPORTANT: Check if email is the same as the one in the token
-    if (email != req.session.jwt.email) return Controller.unauthorized(res);
+    if (email != req.session.jwt.email) return BaseController.unauthorized(res);
 
     const results = {
       user: null,
@@ -366,17 +339,17 @@ export class AuthController extends BaseController {
           results.user.password = newPass;
           return results.user.save();
         } else {
-          return Controller.unauthorized(res);
+          return BaseController.unauthorized(res);
         }
       })
       .then((result) => {
-        if (!result) return Controller.serverError(res);
+        if (!result) return BaseController.serverError(res);
         const credentials = authService.getCredentials(results.user);
-        return Controller.ok(res, credentials);
+        return BaseController.ok(res, credentials);
       })
       .catch((err) => {
         log.error(err);
-        return Controller.badRequest(res);
+        return BaseController.badRequest(res);
       });
   };
 
@@ -397,14 +370,14 @@ export class AuthController extends BaseController {
       })
       .then((user) => {
         if (!user) {
-          return Controller.unauthorized(res);
+          return BaseController.unauthorized(res);
         }
         // Create new token and refresh token and send
         const credentials = authService.getCredentials(user);
-        return Controller.ok(res, credentials);
+        return BaseController.ok(res, credentials);
       })
       .catch((err) => {
-        return Controller.serverError(res, err);
+        return BaseController.serverError(res, err);
       });
   };
 
