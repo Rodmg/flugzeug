@@ -35,7 +35,7 @@ export function validateJWT(type: string) {
         }
         req.session.jwt = decoded;
         req.session.jwtstring = token;
-        req.session.user = _.pick(decoded, ["id", "email", "role"]);
+        req.session.user = _.pick(decoded, ["id", "email"]);
         next();
         return null;
       })
