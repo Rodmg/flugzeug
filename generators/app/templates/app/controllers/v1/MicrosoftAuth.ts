@@ -109,8 +109,7 @@ export class MicrosoftAuthController extends BaseController {
       }
 
       // Create new user from SSO response data
-      user = await onboardingService.createRootAccount(
-        email,
+      user = await onboardingService.createUser(
         name,
         email,
         "ssonopassword",
