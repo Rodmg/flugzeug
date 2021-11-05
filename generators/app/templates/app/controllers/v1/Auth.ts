@@ -9,6 +9,11 @@ import mailer from "@/services/EmailService";
 import _ from "lodash";
 import moment from "moment";
 import jwt from "jsonwebtoken";
+import authService, {
+  AuthCredentials,
+  JWTPayload,
+  Token,
+} from "@/services/AuthService";
 import uuid from "uuid";
 import { validateBody } from "@/libraries/Validator";
 import {
@@ -30,32 +35,8 @@ import {
   ApiDocsSchemaRequest,
 } from "@/libraries/documentation/decorators";
 import { address } from "ip";
+import { Role } from "@/models/Role";
 
-export interface Token {
-  token: string;
-  expires: number;
-  expires_in: number;
-}
-
-export interface AuthCredentials {
-  token: string;
-  expires: number;
-  refresh_token: Token;
-  user: Pick<User, "id" | "name" | "email" | "role">;
-  profile: Profile;
-}
-
-export interface JWTPayload {
-  id: number;
-  sub: string;
-  aud: string;
-  exp: number;
-  iat: number;
-  nbf?: number;
-  jti: string;
-  email: string;
-  role: User["role"];
-}
 @Controller("auth")
 export class AuthController extends BaseController {
   @ApiDocsRouteSummary("Log in with a email and password")
@@ -86,7 +67,6 @@ export class AuthController extends BaseController {
           type: "number",
           example: 1638111071.444,
         },
-
         refresh_token: {
           type: "object",
           properties: {
@@ -156,7 +136,10 @@ export class AuthController extends BaseController {
 
     User.findOne({
       where: { email: email },
-      include: [{ model: Profile, as: "profile" }],
+      include: [
+        { model: Profile, as: "profile" },
+        { model: Role, as: "roles" },
+      ],
     })
       .then((user) => {
         if (!user) {
@@ -167,7 +150,7 @@ export class AuthController extends BaseController {
       })
       .then((authenticated) => {
         if (authenticated === true) {
-          const credentials = this.getCredentials(results.user);
+          const credentials = authService.getCredentials(results.user);
           return BaseController.ok(res, credentials);
         } else {
           return BaseController.unauthorized(res);
@@ -222,7 +205,10 @@ export class AuthController extends BaseController {
         // We need to do another query because before the profile wasn't ready
         return User.findOne({
           where: { id: result.id },
-          include: [{ model: Profile, as: "profile" }],
+          include: [
+            { model: Profile, as: "profile" },
+            { model: Role, as: "roles" },
+          ],
         })
           .then((result) => {
             user = result;
@@ -232,7 +218,7 @@ export class AuthController extends BaseController {
             return user.profile.save();
           })
           .then(() => {
-            const credentials = this.getCredentials(user);
+            const credentials = authService.getCredentials(user);
             return BaseController.ok(res, credentials);
           });
       })
@@ -318,7 +304,7 @@ export class AuthController extends BaseController {
   @Post("/change")
   @Auth()
   @Middlewares([validateBody(AuthChangeSchema)])
-  changePassword(req: Request, res: Response) {
+  changePassword = (req: Request, res: Response) => {
     const email = req.body.email;
     const oldPass = req.body.oldPass;
     const newPass = req.body.newPass;
@@ -336,7 +322,10 @@ export class AuthController extends BaseController {
 
     User.findOne<User>({
       where: { id: req.session.jwt.id },
-      include: [{ model: Profile, as: "profile" }],
+      include: [
+        { model: Profile, as: "profile" },
+        { model: Role, as: "roles" },
+      ],
     })
       .then((user: User) => {
         if (!user) {
@@ -355,14 +344,14 @@ export class AuthController extends BaseController {
       })
       .then((result) => {
         if (!result) return BaseController.serverError(res);
-        const credentials = this.getCredentials(results.user);
+        const credentials = authService.getCredentials(results.user);
         return BaseController.ok(res, credentials);
       })
       .catch((err) => {
         log.error(err);
         return BaseController.badRequest(res);
       });
-  }
+  };
 
   @Post("/refresh")
   @Auth()
@@ -370,7 +359,7 @@ export class AuthController extends BaseController {
     // Refresh token has been previously authenticated in validateJwt as refresh token
     const refreshToken: string = req.session.jwtstring;
     const decodedjwt: JWTPayload = req.session.jwt;
-    const reqUser: Pick<User, "id" | "email" | "role"> = req.session.user;
+    const reqUser: Pick<User, "id" | "email"> = req.session.user;
     // Put refresh token in blacklist
     JWTBlacklist.create({
       token: refreshToken,
@@ -384,7 +373,7 @@ export class AuthController extends BaseController {
           return BaseController.unauthorized(res);
         }
         // Create new token and refresh token and send
-        const credentials = this.getCredentials(user);
+        const credentials = authService.getCredentials(user);
         return BaseController.ok(res, credentials);
       })
       .catch((err) => {
@@ -396,6 +385,7 @@ export class AuthController extends BaseController {
     const expiryUnit: moment.unitOfTime.DurationConstructor =
       config.jwt[type].expiry.unit;
     const expiryLength: number = config.jwt[type].expiry.length;
+    const rolesIds = user.roles.map((role) => role.id);
     const expires = moment().add(expiryLength, expiryUnit).valueOf() / 1000;
     const issued = Date.now() / 1000;
     const expires_in = expires - issued; // seconds
@@ -409,7 +399,7 @@ export class AuthController extends BaseController {
         iat: issued,
         jti: uuid.v4(),
         email: user.email,
-        role: user.role,
+        roles: rolesIds,
       },
       config.jwt.secret,
     );
@@ -419,20 +409,6 @@ export class AuthController extends BaseController {
       expires: expires,
       expires_in: expires_in,
     };
-  }
-
-  protected getCredentials(user: User): AuthCredentials {
-    // Prepare response object
-    const token = this.createToken(user, "access");
-    const refreshToken = this.createToken(user, "refresh");
-    const credentials = {
-      token: token.token,
-      expires: token.expires,
-      refresh_token: refreshToken,
-      user: _.pick(user, ["id", "name", "email", "role"]),
-      profile: user.profile,
-    };
-    return credentials;
   }
 
   private sendEmailNewPassword(
@@ -539,7 +515,7 @@ export class AuthController extends BaseController {
 
             this.sendEmailPasswordChanged(results.user); // We send it asynchronously, we don't care if there is a mistake
 
-            const credentials = this.getCredentials(results.user);
+            const credentials = authService.getCredentials(results.user);
             return credentials;
           })
           .catch((err) => {

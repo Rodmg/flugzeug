@@ -30,7 +30,7 @@ export class <%- modelName %> extends BaseModel<<%- modelName %>> {
   name: string;
 <% if (belongsToUser) { %>
   @RequestRequired(false)
-  @RequestRequired(false)
+  @UpdateRequired(false)
   @ForeignKey(() => User)
   @Column
   userId: number;

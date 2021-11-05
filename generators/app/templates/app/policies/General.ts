@@ -35,7 +35,7 @@ export function validateJWT(type: string) {
         }
         req.session.jwt = decoded;
         req.session.jwtstring = token;
-        req.session.user = _.pick(decoded, ["id", "email", "role"]);
+        req.session.user = _.pick(decoded, ["id", "email"]);
         next();
         return null;
       })
@@ -114,18 +114,6 @@ export function stripNestedObjects() {
         }
       }
     }
-    next();
-  };
-}
-
-/*
-  Only allows certain roles to pass
-*/
-export function filterRoles(roles: Array<string>) {
-  return (req: Request, res: Response, next: Function) => {
-    const role = req.session.jwt.role;
-    if (role == null) return BaseController.unauthorized(res);
-    if (roles.indexOf(role) < 0) return BaseController.unauthorized(res);
     next();
   };
 }

@@ -1,5 +1,5 @@
 import core from "express-serve-static-core";
-import { JWTPayload } from "./controllers/v1/Auth";
+import { JWTPayload } from "@/services/AuthService";
 import { User } from "./models/User";
 
 declare module "express" {
@@ -8,11 +8,11 @@ declare module "express" {
     ResBody = any,
     ReqBody = any,
     ReqQuery = core.Query
-  > extends core.Request<P, ResBody, ReqBody, ReqQuery> {
+    > extends core.Request<P, ResBody, ReqBody, ReqQuery> {
     session?: {
       jwtstring?: string;
       jwt?: JWTPayload;
-      user?: Pick<User, "id" | "email" | "role">;
+      user?: Pick<User, "id" | "email">;
       where?: any;
       include?: any;
       attributes?: any;
