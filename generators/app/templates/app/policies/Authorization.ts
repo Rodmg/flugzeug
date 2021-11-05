@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import _ from "lodash";
 import { Role } from "@/models/Role";
-import { Controller } from "@/libraries/Controller";
+import { BaseController } from "@/libraries/BaseController";
 import { PermissionData, Policy } from "@/models/Policy";
 
 interface ResourcePermission {
@@ -355,14 +355,14 @@ function roleAllowsCustomPermission(
 export function AuthMiddleware() {
   return (req: Request, res: Response, next: Function) => {
     const roles = req.session.jwt.roles;
-    if (_.isEmpty(roles)) return Controller.unauthorized(res);
+    if (_.isEmpty(roles)) return BaseController.unauthorized(res);
     getRolePoliciesFromTokenPayload(roles)
       .then((permissions) => roleCanAccessResource(req, permissions))
       .then((canAccess) => {
         if (canAccess) {
           next();
         } else {
-          return Controller.unauthorized(res);
+          return BaseController.unauthorized(res);
         }
       })
       .catch((error) => {
@@ -374,14 +374,14 @@ export function AuthMiddleware() {
 export function hasCustomPermission(permission: string) {
   return async (req: Request, res: Response, next: Function) => {
     const roles = req.session.jwt.roles;
-    if (_.isEmpty(roles)) return Controller.unauthorized(res);
+    if (_.isEmpty(roles)) return BaseController.unauthorized(res);
     try {
       const permissions = await getRolePoliciesFromTokenPayload(roles);
       const canAccess = roleAllowsCustomPermission(permission, permissions);
       if (canAccess) {
         next();
       } else {
-        return Controller.unauthorized(res);
+        return BaseController.unauthorized(res);
       }
     } catch (error) {
       throw error;
