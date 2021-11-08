@@ -352,7 +352,7 @@ function roleAllowsCustomPermission(
  *
  * @constructor Middleware to handle users permission based on their roles.
  */
-export function AuthMiddleware() {
+export function authorize() {
   return (req: Request, res: Response, next: Function) => {
     const roles = req.session.jwt.roles;
     if (_.isEmpty(roles)) return BaseController.unauthorized(res);

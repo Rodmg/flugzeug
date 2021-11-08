@@ -39,9 +39,16 @@ export function Put(path: string = "/") {
 export function Delete(path: string = "/") {
   return new ControllerMethodDecorator(HttpMethod.DELETE, path).decorateMethod;
 }
-export function Auth(active: boolean = true) {
+export function Auth(middlewares?: Array<Function>) {
   return (target: any, propertyKey: string) => {
-    Reflect.defineMetadata("auth", active, target, propertyKey);
+    Reflect.defineMetadata("auth", true, target, propertyKey);
+    if (middlewares)
+      Reflect.defineMetadata(
+        "authMiddlewares",
+        middlewares,
+        target,
+        propertyKey,
+      );
   };
 }
 export function Middlewares(middlewares: Array<Function>) {
@@ -76,7 +83,7 @@ class ControllerMethodDecorator {
     //if there is not a descriptor for arrow functions
     if (!descriptor) {
       Reflect.defineProperty(target, propertyKey, {
-        set: function(this: any, val) {
+        set: function (this: any, val) {
           // here we have reference to instance and can set property directly to it
           Reflect.defineProperty(this, propertyKey, {
             value: val,
@@ -111,6 +118,9 @@ export function getRouteMetaData(
 
 export function getAuthMetaData(target, propertyKey) {
   return Reflect.getMetadata("auth", target, propertyKey) ?? false;
+}
+export function getAuthMiddlewares(target, propertyKey) {
+  return Reflect.getMetadata("authMiddlewares", target, propertyKey) ?? [];
 }
 
 export function getMiddlewares(target, propertyKey) {

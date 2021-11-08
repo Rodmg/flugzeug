@@ -35,7 +35,7 @@ class ModelAdmin extends BaseController {
   }
   private generateModelList() {
     if (!this.modelAdminList) {
-      this.modelAdminList = Object.keys(importedCtrlsAdmin).map((k) => {
+      this.modelAdminList = Object.keys(importedCtrlsAdmin).map(k => {
         return importedCtrlsAdmin[k].default.name;
       });
     }

@@ -22,6 +22,7 @@ export async function seed(): Promise<void> {
         "user.*.*": true,
         "profile.*.*": true,
         "role.*.r": true,
+        admin: true,
       },
     });
     await adminRole.addPolicy(adminPolicy.id);
