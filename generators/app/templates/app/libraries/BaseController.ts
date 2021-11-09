@@ -1,6 +1,14 @@
 import { Request, Response, Router } from "express";
+import { validateJWT } from "@/policies/General";
 import { log } from "./Log";
 import _ from "lodash";
+import {
+  getRouteMetaData,
+  isRoute,
+  HttpMethod,
+  getAuthMetaData,
+  getMiddlewares,
+} from "@/libraries/routes/decorators";
 
 export enum ControllerErrors {
   NOT_FOUND,
@@ -20,21 +28,62 @@ export function parseBody(req: Request): any {
   return body;
 }
 
-export class Controller {
+export class BaseController {
   public name: string; // Name used for the route, all lowercase
   protected router: Router;
 
   constructor() {
     this.router = Router();
     // Initialize req.session
-    this.router.use(function(req: Request, res: Response, next) {
+    this.router.use(function (req: Request, res: Response, next) {
       if (req.session == null) req.session = {};
       next();
     });
   }
 
   routes(): Router {
-    // Setup your routes here
+    //iterate through all numerable properties
+    for (const property in this) {
+      if (isRoute(this, property)) {
+        const isAuthRequired = getAuthMetaData(this, property);
+
+        let functionsChain: Array<Function> = [];
+
+        //middlewares config
+
+        if (isAuthRequired) {
+          functionsChain.push(validateJWT("access"));
+        }
+
+        functionsChain.push(getMiddlewares(this, property));
+
+        //@ts-ignore
+        functionsChain.push(this[property]);
+
+        // route config
+        const routeConfig = getRouteMetaData(this, property);
+        switch (routeConfig.httpMethod) {
+          case HttpMethod.GET:
+            //@ts-ignore
+            this.router.get(routeConfig.path, functionsChain);
+            break;
+          case HttpMethod.POST:
+            //@ts-ignore
+            this.router.post(routeConfig.path, functionsChain);
+            break;
+          case HttpMethod.PUT:
+            //@ts-ignore
+            this.router.put(routeConfig.path, functionsChain);
+            break;
+          case HttpMethod.DELETE:
+            //@ts-ignore
+            this.router.delete(routeConfig.path, functionsChain);
+            break;
+          default:
+            break;
+        }
+      }
+    }
     return this.router;
   }
 
@@ -103,7 +152,7 @@ export class Controller {
 }
 
 function handleDatabaseConstraintsError(err: any, res: Response) {
-  return Controller.conflict(res, err.errors[0].message);
+  return BaseController.conflict(res, err.errors[0].message);
 }
 function isDBConstraintError(err: any): boolean {
   return err.name === "SequelizeUniqueConstraintError";
@@ -111,13 +160,13 @@ function isDBConstraintError(err: any): boolean {
 
 export function handleServerError(err: any, res: Response) {
   if (err === ControllerErrors.NOT_FOUND) {
-    return Controller.notFound(res);
+    return BaseController.notFound(res);
   }
   if (err === ControllerErrors.BAD_REQUEST) {
-    return Controller.badRequest(res);
+    return BaseController.badRequest(res);
   }
   if (isDBConstraintError(err)) {
     return handleDatabaseConstraintsError(err, res);
   }
-  return Controller.serverError(res, err);
+  return BaseController.serverError(res, err);
 }

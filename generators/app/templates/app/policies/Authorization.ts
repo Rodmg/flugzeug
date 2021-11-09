@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import _ from "lodash";
 import { Role } from "@/models/Role";
-import { Controller } from "@/libraries/Controller";
+import { BaseController } from "@/libraries/BaseController";
 import { PermissionData, Policy } from "@/models/Policy";
 
 interface ResourcePermission {
@@ -62,7 +62,7 @@ function permissionFormat(
   const pathPermission = removeDuplicates(
     resourcePermission.allow,
     resourcePermission.deny,
-  ).map(data => {
+  ).map((data) => {
     const resourceParsed = data.split(".");
     return {
       resource: resourceParsed[0],
@@ -74,7 +74,7 @@ function permissionFormat(
   const dataAllowPermissions = removeDuplicates(
     dataPermission.allow,
     dataPermission.deny,
-  ).map(data => {
+  ).map((data) => {
     const dataParsed = data.split(".");
     return {
       resource: dataParsed[0],
@@ -84,7 +84,7 @@ function permissionFormat(
     };
   });
 
-  const dataDenyPermissions = dataPermission.deny.map(data => {
+  const dataDenyPermissions = dataPermission.deny.map((data) => {
     const resourceParsed = data.split(".");
     return {
       resource: resourceParsed[0],
@@ -255,7 +255,7 @@ async function getRolePoliciesFromTokenPayload(
     data: [],
     custom: [],
   };
-  const rolePoliciesMap = rolePolicies.map(rolePolicy => rolePolicy.policies);
+  const rolePoliciesMap = rolePolicies.map((rolePolicy) => rolePolicy.policies);
   for (const rolePolicy in rolePoliciesMap) {
     getPermission(rolePoliciesMap[rolePolicy], permission);
   }
@@ -308,7 +308,7 @@ function roleCanAccessResource(req: Request, permissions: Permission) {
     .split("/")
     .splice(0, 1);
 
-  const permissionsToResource = permissions.path.filter(permission =>
+  const permissionsToResource = permissions.path.filter((permission) =>
     pathWithoutSlashes.includes(permission.resource),
   );
   const dataPermission = _.filter(permissions.data, {
@@ -321,7 +321,7 @@ function roleCanAccessResource(req: Request, permissions: Permission) {
 
   const allowedMethods: string[] = _.flatMap(
     permissionsToResource,
-    permission => {
+    (permission) => {
       return requestMethodMapper[permission.action];
     },
   );
@@ -355,17 +355,17 @@ function roleAllowsCustomPermission(
 export function AuthMiddleware() {
   return (req: Request, res: Response, next: Function) => {
     const roles = req.session.jwt.roles;
-    if (_.isEmpty(roles)) return Controller.unauthorized(res);
+    if (_.isEmpty(roles)) return BaseController.unauthorized(res);
     getRolePoliciesFromTokenPayload(roles)
-      .then(permissions => roleCanAccessResource(req, permissions))
-      .then(canAccess => {
+      .then((permissions) => roleCanAccessResource(req, permissions))
+      .then((canAccess) => {
         if (canAccess) {
           next();
         } else {
-          return Controller.unauthorized(res);
+          return BaseController.unauthorized(res);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         throw error;
       });
   };
@@ -374,14 +374,14 @@ export function AuthMiddleware() {
 export function hasCustomPermission(permission: string) {
   return async (req: Request, res: Response, next: Function) => {
     const roles = req.session.jwt.roles;
-    if (_.isEmpty(roles)) return Controller.unauthorized(res);
+    if (_.isEmpty(roles)) return BaseController.unauthorized(res);
     try {
       const permissions = await getRolePoliciesFromTokenPayload(roles);
       const canAccess = roleAllowsCustomPermission(permission, permissions);
       if (canAccess) {
         next();
       } else {
-        return Controller.unauthorized(res);
+        return BaseController.unauthorized(res);
       }
     } catch (error) {
       throw error;

@@ -12,6 +12,7 @@
     "seed": "gulp seed",
     "cleanSeed": "gulp cleanSeed",
     "migrate": "gulp migrate",
+    "makeDocumentation":"gulp documentation",
     "makemigration": "gulp makemigration",
     "sql": "gulp sql",
     "start": "node --require source-map-support/register dist/main.js",
@@ -81,9 +82,11 @@
     "lodash": "^4.17.21",
     "method-override": "3.0.0",
     "moment": "2.22.2",
+    "swagger-ui-express": "4.1.6",
+    "yaml": "1.10.2",
     "morgan": "1.9.1",
 <% if (dbtype === 'sqlite') { %>
-    "sqlite3": "4.1.1",
+    "sqlite3": "5.0.0",
 <% } %>
 <% if (dbtype === 'mysql') { %>
     "mysql2": "1.6.1",

@@ -1,4 +1,4 @@
-import { Controller } from "@/libraries/Controller";
+import { BaseController } from "@/libraries/BaseController";
 import { Router, Request, Response } from "express";
 import {
   authenticateSSO,
@@ -12,44 +12,31 @@ import authService from "@/services/AuthService";
 import { Role } from "@/models/Role";
 import onboardingService from "@/services/OnboardingService";
 import { Profile } from "@/models/Profile";
+import { Controller, Get, Middlewares } from "@/libraries/routes/decorators";
 
-export class MicrosoftAuthController extends Controller {
-  constructor() {
-    super();
-    this.name = "microsoftauth";
-  }
+@Controller("microsoftauth")
+export class MicrosoftAuthController extends BaseController {
+  @Get("/login")
+  authenticate = authenticateSSO(IdentityProvider.Microsoft);
 
-  routes(): Router {
+  @Get("/login/callback")
+  @Middlewares([authenticateSSOCallback(IdentityProvider.Microsoft)])
+  loginCallback = (req, res) =>
+    this.login(req, res, {
+      loginPageRedirect: config.auth.login_page,
+      homePageRedirect: config.auth.home_page,
+    });
 
-    this.router.get("/login", authenticateSSO(IdentityProvider.Microsoft));
+  @Get("/register")
+  authenticateRegister = authenticateSSO(IdentityProvider.MicrosoftRegister);
 
-    this.router.get(
-      "/login/callback",
-      authenticateSSOCallback(IdentityProvider.Microsoft),
-      (req, res) =>
-        this.login(req, res, {
-          loginPageRedirect: config.auth.login_page,
-          homePageRedirect: config.auth.home_page,
-        }),
-    );
-
-    this.router.get(
-      "/register",
-      authenticateSSO(IdentityProvider.MicrosoftRegister),
-    );
-
-    this.router.get(
-      "/register/callback",
-      authenticateSSOCallback(IdentityProvider.MicrosoftRegister),
-      (req, res) =>
-        this.register(req, res, {
-          registerPageRedirect: config.auth.register_page,
-          homePageRedirect: config.auth.home_page,
-        }),
-    );
-
-    return this.router;
-  }
+  @Get("/register/callback")
+  @Middlewares([authenticateSSOCallback(IdentityProvider.MicrosoftRegister)])
+  registerCallback = (req, res) =>
+    this.register(req, res, {
+      registerPageRedirect: config.auth.register_page,
+      homePageRedirect: config.auth.home_page,
+    });
 
   async login(
     req: Request,
@@ -64,7 +51,7 @@ export class MicrosoftAuthController extends Controller {
       const email =
         (req.user as any)?._json?.mail || (req.user as any)?._json?.email;
       if (email == null) {
-        return Controller.notFound(res);
+        return BaseController.notFound(res);
       }
 
       const user: User = await User.findOne({
@@ -84,7 +71,7 @@ export class MicrosoftAuthController extends Controller {
       const token = authService.getExchangeToken(user);
       res.redirect(`${options.homePageRedirect}?token=${token}`);
     } catch (error) {
-      return Controller.serverError(res, error);
+      return BaseController.serverError(res, error);
     }
   }
 
@@ -102,7 +89,7 @@ export class MicrosoftAuthController extends Controller {
         (req.user as any)?._json?.mail || (req.user as any)?._json?.email;
       const name = (req.user as any)?._json?.displayName;
       if (email == null) {
-        return Controller.notFound(res);
+        return BaseController.notFound(res);
       }
 
       // Validate if user doesn't already exists
@@ -141,7 +128,7 @@ export class MicrosoftAuthController extends Controller {
       const token = authService.getExchangeToken(user);
       res.redirect(`${options.homePageRedirect}?token=${token}`);
     } catch (error) {
-      return Controller.serverError(res, error);
+      return BaseController.serverError(res, error);
     }
   }
 }

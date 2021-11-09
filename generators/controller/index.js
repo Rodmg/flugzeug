@@ -26,7 +26,6 @@ module.exports = class extends Generator {
     if (this.opts.modelName == null && this.options.name != null) {
       this.opts.modelName = changeCase.pascalCase(this.options.name);
     }
-
     const prompts = [
       {
         type: "input",
@@ -39,7 +38,7 @@ module.exports = class extends Generator {
         type: "input",
         name: "modelName",
         message: "Model:",
-        default: props => {
+        default: (props) => {
           return this.opts.modelName == null
             ? props.controllerName
             : this.opts.modelName;
@@ -62,7 +61,7 @@ module.exports = class extends Generator {
         type: "confirm",
         name: "belongsToUser",
         message: "Does the model belongs to User?",
-        default: props => {
+        default: (props) => {
           return this.opts.belongsToUser == null
             ? props.needsAuth
             : this.opts.belongsToUser;
@@ -71,7 +70,7 @@ module.exports = class extends Generator {
       },
     ];
 
-    return this.prompt(prompts).then(props => {
+    return this.prompt(prompts).then((props) => {
       this.props = props;
       this.props.pathName = props.controllerName.toLowerCase();
       if (this.opts.modelName != null)

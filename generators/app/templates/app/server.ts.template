@@ -10,7 +10,16 @@ import { routes } from "@/routes";
 import { log, requestLogStream } from "@/libraries/Log";
 import { config } from "@/config";
 import { createServer } from "http";
+import swaggerUi from "swagger-ui-express";
+import fs from "fs";
 
+//read documentation
+const DOCUMENTATION_DIR = path.join(__dirname, "../app/documentation");
+const openapiSpecification = JSON.parse(
+  fs
+    .readFileSync(path.join(DOCUMENTATION_DIR, "/openApiSchema.json"))
+    .toString(),
+);
 export const app = express();
 export const server = createServer(app);
 // Security middleware
@@ -43,6 +52,8 @@ app.use(function(req, res, next) {
   );
   next();
 });
+//path for show docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 
 routes(app);
 
