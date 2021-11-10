@@ -1,31 +1,59 @@
 import { ModelController } from "@/libraries/ModelController";
 import { <%- modelName %> } from "@/models/<%- modelName %>";
-import { Router } from "express";
 import {
-  validateJWT,
   filterOwner,
   appendUser,
   stripNestedObjects,
 } from "@/policies/General";
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Delete,
+  Auth,
+  Middlewares,
+} from "@/libraries/routes/decorators";
+import {
+  ApiDocs,
+  ApiDocsRouteSummary,
+  ApiDocsAddSearchParameters
+} from "@/libraries/documentation/decorators";
 
+
+@Controller("<%- pathName %>", <%- modelName %>)
+@ApiDocs()
 export class <%- controllerName %>Controller extends ModelController<<%- modelName %>> {
+  @ApiDocsRouteSummary("Get a list of <%- modelName %>s")
+  @ApiDocsAddSearchParameters()
+  @Get("/")
+  <% if (needsAuth) { %>@Auth() <% } %>
+  @Middlewares([<% if (needsAuth && belongsToUser) { %>filterOwner() <% } %>])
+  get<%- modelName %>s=(req, res) => this.handleFindAll(req, res);
+  
+  @ApiDocsRouteSummary("Get a <%- modelName %> by Id")
+  @Get("/:id")
+  <% if (needsAuth) { %>@Auth() <% } %>
+  @Middlewares([<% if (needsAuth && belongsToUser) { %>filterOwner() <% } %>])
+  get<%- modelName %>=(req, res) => this.handleFindOne(req, res);
 
-  constructor() {
-    super();
-    this.name = "<%- pathName %>";
-    this.model = <%- modelName %>;
-  }
+  @ApiDocsRouteSummary("Adds a new <%- modelName %>")
+  @Post("/")
+  <% if (needsAuth) { %>@Auth() <% } %>
+  @Middlewares([stripNestedObjects(), <% if (needsAuth && belongsToUser) { %>filterOwner(), appendUser(), <% } %>])
+  post<%- modelName %>=(req, res) => this.handleCreate(req, res);
 
-  routes(): Router {
+  @ApiDocsRouteSummary("Upload <%- modelName %> by Id")
+  @Put("/:id")
+  <% if (needsAuth) { %>@Auth() <% } %>
+  @Middlewares([stripNestedObjects(), <% if (needsAuth && belongsToUser) { %>filterOwner(), appendUser(), <% } %>])
+  put<%- modelName %>=(req, res) => this.handleUpdate(req, res);
 
-    this.router.get("/", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (needsAuth && belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.handleFindAll(req, res));
-    this.router.get("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (needsAuth && belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.handleFindOne(req, res));
-    this.router.post("/", <% if (needsAuth) { %>validateJWT("access"), <% } %>stripNestedObjects(), <% if (needsAuth && belongsToUser) { %>filterOwner(), appendUser(), <% } %>(req, res) => this.handleCreate(req, res));
-    this.router.put("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %>stripNestedObjects(), <% if (needsAuth && belongsToUser) { %>filterOwner(), appendUser(), <% } %>(req, res) => this.handleUpdate(req, res));
-    this.router.delete("/:id", <% if (needsAuth) { %>validateJWT("access"), <% } %><% if (needsAuth && belongsToUser) { %>filterOwner(), <% } %>(req, res) => this.handleDelete(req, res));
-
-    return this.router;
-  }
+  @ApiDocsRouteSummary("Delete <%- modelName %> by Id")
+  @Delete("/:id")
+  <% if (needsAuth) { %>@Auth() <% } %>
+  @Middlewares([<% if (needsAuth && belongsToUser) { %>filterOwner() <% } %>])
+  delete<%- modelName %>=(req, res) => this.handleDelete(req, res);
 
 }
 

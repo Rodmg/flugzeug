@@ -1,35 +1,32 @@
 import { ModelController } from "@/libraries/ModelController";
 import { Profile } from "@/models/Profile";
-import { Router } from "express";
-import { validateJWT, filterOwner, appendUser } from "@/policies/General";
+import { filterOwner, appendUser } from "@/policies/General";
 import { validateBody } from "@/libraries/Validator";
 import { ProfileSchema } from "@/validators/Profile";
+import {
+  Auth,
+  Controller,
+  Get,
+  Middlewares,
+  Put,
+} from "@/libraries/routes/decorators";
 
+@Controller("profile", Profile)
 export class ProfileController extends ModelController<Profile> {
-  constructor() {
-    super();
-    this.name = "profile";
-    this.model = Profile;
-  }
+  @Get("/")
+  @Auth()
+  @Middlewares([filterOwner()])
+  getProfiles = (req, res) => this.handleFindAll(req, res);
 
-  routes(): Router {
-    this.router.get("/", validateJWT("access"), filterOwner(), (req, res) =>
-      this.handleFindAll(req, res),
-    );
-    this.router.get("/:id", validateJWT("access"), filterOwner(), (req, res) =>
-      this.handleFindOne(req, res),
-    );
-    this.router.put(
-      "/:id",
-      validateJWT("access"),
-      validateBody(ProfileSchema),
-      filterOwner(),
-      appendUser(),
-      (req, res) => this.handleUpdate(req, res),
-    );
+  @Get("/:id")
+  @Auth()
+  @Middlewares([filterOwner()])
+  getProfile = (req, res) => this.handleFindOne(req, res);
 
-    return this.router;
-  }
+  @Put("/:id")
+  @Auth()
+  @Middlewares([validateBody(ProfileSchema), filterOwner(), appendUser()])
+  putProfile = (req, res) => this.handleUpdate(req, res);
 }
 
 const controller = new ProfileController();

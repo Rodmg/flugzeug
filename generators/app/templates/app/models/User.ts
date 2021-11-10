@@ -15,6 +15,12 @@ import {
 import { BaseModel } from "@/libraries/BaseModel";
 import { Profile } from "./Profile";
 import bcrypt from "bcrypt";
+import {
+  ApiDocs,
+  ResponseRequired,
+  RequestRequired,
+  UpdateRequired,
+} from "@/libraries/documentation/decorators";
 import { UserRole } from "./UserRole";
 import { Role } from "./Role";
 import { config } from "@/config";
@@ -28,6 +34,7 @@ export enum AuthType {
 @Table({
   tableName: "user",
 })
+@ApiDocs(true)
 export class User extends BaseModel<User> {
   @Column({
     type: DataType.STRING,
@@ -80,11 +87,12 @@ export class User extends BaseModel<User> {
     type: DataType.STRING,
     allowNull: false,
     validate: {
-      isLength: {
-        min: 8,
-      },
+      len: [8, 255],
     },
   })
+  @ResponseRequired(false)
+  @RequestRequired(true)
+  @UpdateRequired(true)
   password: string;
 
   @Column({
@@ -161,7 +169,7 @@ export class User extends BaseModel<User> {
   }
 
   updatePassword(): Promise<void> {
-    return this.hashPassword(this.password).then(result => {
+    return this.hashPassword(this.password).then((result) => {
       this.password = result;
       return null;
     });

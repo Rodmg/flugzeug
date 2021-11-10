@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
+import { default as auth } from "@/controllers/v1/Auth";
 import _ from "lodash";
-import { Controller } from "@/libraries/Controller";
+import { BaseController } from "@/libraries/BaseController";
 import authService from "@/services/AuthService";
 
 const propertyMapper = {
   createdById: "id",
   updatedById: "id",
 };
-
 /*
   Validates a JWT
   puts decoded jwt in req.session.jwt
@@ -18,7 +18,7 @@ export function validateJWT(type: string) {
     let token: string = null;
     const authorization: string = req.get("Authorization");
     if (authorization == null) {
-      Controller.unauthorized(res, "No Token Present");
+      BaseController.unauthorized(res, "No Token Present");
       return null;
     }
     const parts: Array<string> = authorization.split(" ");
@@ -35,7 +35,7 @@ export function validateJWT(type: string) {
       .validateJWT(token, type)
       .then(decoded => {
         if (!decoded) {
-          Controller.unauthorized(res, "Invalid Token");
+          BaseController.unauthorized(res, "Invalid Token");
           return null;
         }
         req.session.jwt = decoded;
@@ -45,34 +45,7 @@ export function validateJWT(type: string) {
         return null;
       })
       .catch(err => {
-        Controller.unauthorized(res, err);
-      });
-  };
-}
-
-export function validateJWTOnQueryString(type: string, key = "token") {
-  return (req: Request, res: Response, next: Function) => {
-    const token = req.query[key] as string;
-    if (token == null) {
-      Controller.unauthorized(res, "No Token Present");
-      return null;
-    }
-
-    authService
-      .validateJWT(token, type)
-      .then(decoded => {
-        if (!decoded) {
-          Controller.unauthorized(res, "Invalid Token");
-          return null;
-        }
-        req.session.jwt = decoded;
-        req.session.jwtstring = token;
-        req.session.user = _.pick(decoded, ["id", "email"]);
-        next();
-        return null;
-      })
-      .catch(err => {
-        Controller.unauthorized(res, err);
+        BaseController.unauthorized(res, err);
       });
   };
 }
@@ -84,7 +57,7 @@ export function validateJWTOnQueryString(type: string, key = "token") {
 export function filterOwner(key = "userId") {
   return (req: Request, res: Response, next: Function) => {
     const id = req.session.jwt.id;
-    if (id == null) return Controller.unauthorized(res);
+    if (id == null) return BaseController.unauthorized(res);
     if (req.session.where == null) req.session.where = {};
     req.session.where[key] = id;
     next();
@@ -94,20 +67,20 @@ export function filterOwner(key = "userId") {
 export function isOwner(model: any, key = "userId") {
   return (req: Request, res: Response, next: Function) => {
     const userId = req.session.jwt.id;
-    if (userId == null) return Controller.unauthorized(res);
+    if (userId == null) return BaseController.unauthorized(res);
     const id: number = parseInt(req.params.id);
     if (id == null)
-      return Controller.badRequest(res, "Bad Request: No id in request.");
+      return BaseController.badRequest(res, "Bad Request: No id in request.");
     model
       .findByPk(id)
       .then((result: any) => {
-        if (!result) return Controller.notFound(res);
-        if (result[key] !== userId) return Controller.forbidden(res);
+        if (!result) return BaseController.notFound(res);
+        if (result[key] !== userId) return BaseController.forbidden(res);
         req.session.instance = result;
         next();
       })
       .catch(() => {
-        Controller.serverError(res);
+        BaseController.serverError(res);
       });
   };
 }
@@ -119,7 +92,7 @@ export function isOwner(model: any, key = "userId") {
 export function appendUser(key = "userId") {
   return (req: Request, res: Response, next: Function) => {
     const id = req.session.jwt.id;
-    if (id == null) return Controller.unauthorized(res);
+    if (id == null) return BaseController.unauthorized(res);
     if (!req.body) req.body = {};
     req.body[key] = id;
     next();
@@ -166,8 +139,8 @@ export function stripNestedObjects() {
 export function isSelfUser() {
   return (req: Request, res: Response, next: Function) => {
     const id = req.session.jwt.id;
-    if (id == null) return Controller.unauthorized(res);
-    if (id !== parseInt(req.params.id)) return Controller.unauthorized(res);
+    if (id == null) return BaseController.unauthorized(res);
+    if (id !== parseInt(req.params.id)) return BaseController.unauthorized(res);
     next();
   };
 }
@@ -179,8 +152,8 @@ export function isSelfUser() {
 export function isNotSelfUser() {
   return (req: Request, res: Response, next: Function) => {
     const id = req.session.jwt.id;
-    if (id == null) return Controller.unauthorized(res);
-    if (id === parseInt(req.params.id)) return Controller.unauthorized(res);
+    if (id == null) return BaseController.unauthorized(res);
+    if (id === parseInt(req.params.id)) return BaseController.unauthorized(res);
     next();
   };
 }

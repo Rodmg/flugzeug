@@ -45,7 +45,7 @@ module.exports = class extends Generator {
       },
     ];
 
-    return this.prompt(prompts).then(props => {
+    return this.prompt(prompts).then((props) => {
       this.props = props;
       this.props.tableName = props.modelName.toLowerCase();
       // Copy props to opts to expose to other composed generators
