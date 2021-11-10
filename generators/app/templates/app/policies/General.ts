@@ -145,6 +145,34 @@ export function isSelfUser() {
   };
 }
 
+export function validateJWTOnQueryString(type: string, key = "token") {
+  return (req: Request, res: Response, next: Function) => {
+    const token = req.query[key] as string;
+    if (token == null) {
+      BaseController.unauthorized(res, "No Token Present");
+      return null;
+    }
+
+    authService
+      .validateJWT(token, type)
+      .then(decoded => {
+        if (!decoded) {
+          BaseController.unauthorized(res, "Invalid Token");
+          return null;
+        }
+        req.session.jwt = decoded;
+        req.session.jwtstring = token;
+        req.session.user = _.pick(decoded, ["id", "email"]);
+        next();
+        return null;
+      })
+      .catch(err => {
+        BaseController.unauthorized(res, err);
+      });
+  };
+}
+
+
 /*
   Checks if the requested user is not self
   ** Only applicable to UserController
