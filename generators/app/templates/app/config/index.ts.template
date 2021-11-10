@@ -25,6 +25,12 @@ export const config = {
     login_page: process.env.LOGIN_PAGE,
     register_page: process.env.REGISTER_PAGE,
   },
+    emailAuth: {
+      requireEmailConfirmation:
+        process.env.EMAIL_AUTH_REQUIRE_EMAIL_CONFIRMATION === "true",
+      emailConfirmUrl: process.env.CONFIRM_PAGE || "http://example.com/confirm",
+      passwordResetUrl: process.env.RESET_PAGE || "http://example.com/reset",
+    },
   jwt: {
     secret:
       process.env.JWT_SECRET || "<%- jwt_secret %>",

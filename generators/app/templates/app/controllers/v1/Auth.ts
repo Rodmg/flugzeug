@@ -1,4 +1,4 @@
-import { BaseController } from "@/libraries/BaseController";
+import { BaseController, parseBody } from "@/libraries/BaseController";
 import { User } from "@/models/User";
 import { Profile } from "@/models/Profile";
 import { JWTBlacklist } from "@/models/JWTBlacklist";
@@ -16,10 +16,13 @@ import authService, {
 } from "@/services/AuthService";
 import uuid from "uuid";
 import { validateBody } from "@/libraries/Validator";
+import { validateJWTOnQueryString } from "@/policies/General";
+
 import {
   AuthChangeSchema,
   AuthLoginSchema,
   AuthRegisterSchema,
+  AuthResendConfirmSchema,
 } from "@/validators/Auth";
 import {
   Controller,
@@ -34,7 +37,6 @@ import {
   ApiDocsSchemaResponse,
   ApiDocsSchemaRequest,
 } from "@/libraries/documentation/decorators";
-import { address } from "ip";
 import { Role } from "@/models/Role";
 
 @Controller("auth")
@@ -185,7 +187,7 @@ export class AuthController extends BaseController {
 
   @Post("/register")
   @Middlewares([validateBody(AuthRegisterSchema)])
-  register = (req: Request, res: Response) => {
+  register = async (req: Request, res: Response) => {
     const newUser = {
       email: req.body.email,
       password: req.body.password,
@@ -199,8 +201,24 @@ export class AuthController extends BaseController {
     if (newUser.email == null || newUser.password == null)
       return BaseController.badRequest(res);
 
+    if (config.emailAuth.requireEmailConfirmation) {
+      // Validate if user exists but hasn't been confirmed
+      const user = await User.findOne({
+        where: {
+          email: newUser.email,
+          isActive: false,
+          isEmailConfirmed: false,
+        },
+      });
+
+      if (user != null) {
+        // User existis but email hasn't been confirmed
+        return BaseController.conflict(res, "email pending validation");
+      }
+    }
+
     let user: User;
-    User.create(newUser)
+    await User.create(newUser)
       .then((result) => {
         // We need to do another query because before the profile wasn't ready
         return User.findOne({
@@ -217,7 +235,24 @@ export class AuthController extends BaseController {
             if (timezone != null) user.profile.time_zone = timezone;
             return user.profile.save();
           })
-          .then(() => {
+          .then(async () => {
+            if (config.emailAuth.requireEmailConfirmation) {
+              // Send Email Confirmation email
+              try {
+                const info = await this.handleSendConfirmEmail(user.email);
+                log.info(info);
+              } catch (err) {
+                log.error(err);
+                if (err.error == "badRequest")
+                  return BaseController.badRequest(res, err.msg);
+                if (err.error == "notFound")
+                  return BaseController.notFound(res, err.msg);
+                if (err.error == "serverError")
+                  return BaseController.serverError(res, err.msg);
+                return BaseController.serverError(res);
+              }
+              return BaseController.ok(res, "Please check your email inbox.");
+            }
             const credentials = authService.getCredentials(user);
             return BaseController.ok(res, credentials);
           });
@@ -239,7 +274,8 @@ export class AuthController extends BaseController {
     const token: string = req.query.token as string;
     if (_.isUndefined(token)) return BaseController.unauthorized(res);
     // Decode token
-    this.validateJWT(token, "reset")
+    authService
+      .validateJWT(token, "reset")
       .then((decodedjwt) => {
         if (decodedjwt)
           res.redirect(`${config.urls.base}/recovery/#/reset?token=${token}`);
@@ -381,6 +417,133 @@ export class AuthController extends BaseController {
       });
   };
 
+  @Get("/confirm")
+  @Middlewares([validateJWTOnQueryString("confirmEmail")])
+  confirmEmail = async (req: Request, res: Response) => {
+    const userId = req.session.jwt.id;
+    const email = req.session.user.email;
+    if (userId == null) {
+      return res.redirect(
+        `${config.emailAuth.emailConfirmUrl}?success=false&email=${email}`,
+      );
+    }
+
+    const user = await User.findByPk(userId);
+    if (user == null) {
+      return res.redirect(
+        `${config.emailAuth.emailConfirmUrl}?success=false&email=${email}`,
+      );
+    }
+    user.isActive = true;
+    user.isEmailConfirmed = true;
+    await user.save();
+    return res.redirect(
+      `${config.emailAuth.emailConfirmUrl}?success=true&email=${email}`,
+    );
+  };
+
+  @ApiDocsRouteSummary("Resend confirm email")
+  @ApiDocsSchemaRequest("resendConfirmEmailRequest", {
+    type: "object",
+    properties: {
+      email: {
+        type: "string",
+        example: "example@email.com",
+      },
+    },
+  })
+  @ApiDocsSchemaResponse(
+    "authLoginResponse",
+    {
+      type: "object",
+      properties: {
+        token: {
+          type: "string",
+          data: "Please check your email inbox.",
+        },
+      },
+    },
+    200,
+  )
+  @Post("/resendconfirm")
+  @Middlewares([validateBody(AuthResendConfirmSchema)])
+  resendConfirmEmail = async (req: Request, res: Response) => {
+    const { email } = parseBody(req);
+
+    if (email == null) {
+      return BaseController.badRequest(res);
+    }
+
+    if (!config.emailAuth.requireEmailConfirmation) {
+      return BaseController.notFound(res);
+    }
+
+    // Validate if user exists but hasn't been confirmed
+    const user = await User.findOne({
+      where: {
+        email,
+        isActive: false,
+        isEmailConfirmed: false,
+      },
+    });
+
+    if (!user) {
+      return BaseController.notFound(res);
+    }
+
+    try {
+      const info = await this.handleSendConfirmEmail(user.email);
+      log.info(info);
+    } catch (err) {
+      log.error(err);
+      if (err.error == "badRequest")
+        return BaseController.badRequest(res, err.msg);
+      if (err.error == "notFound") return BaseController.notFound(res, err.msg);
+      if (err.error == "serverError")
+        return BaseController.serverError(res, err.msg);
+      return BaseController.serverError(res);
+    }
+    return BaseController.ok(res, "Please check your email inbox.");
+  };
+
+  async handleSendConfirmEmail(email: string): Promise<any> {
+    const user = await User.findOne({
+      where: { email: email },
+      include: [
+        { model: Profile, as: "profile" },
+        { model: Role, as: "roles" },
+      ],
+    });
+    if (!user) {
+      throw { error: "notFound", msg: "Email not found" };
+    }
+    // Create reset token
+    const token = authService.createToken(user, "confirmEmail");
+    return this.sendEmailConfirm(user, token.token, user.name);
+  }
+
+  private async sendEmailConfirm(
+    user: User,
+    token: string,
+    name?: string,
+  ): Promise<any> {
+    const subject = "Welcome!, please verify your email address.";
+
+    const info = await mailer.sendEmail(
+      user.email,
+      subject,
+      "email_confirm",
+      user.profile.locale,
+      {
+        url: `${config.urls.baseApi}/emailauth/confirm?token=${token}`,
+        name: name || user.email,
+        email: user.email,
+      },
+    );
+    log.debug("Sending email confirm email to:", user.email, info);
+    return info;
+  }
+
   public createToken(user: User, type: string): Token {
     const expiryUnit: moment.unitOfTime.DurationConstructor =
       config.jwt[type].expiry.unit;
@@ -479,7 +642,8 @@ export class AuthController extends BaseController {
     token: string,
     password: string,
   ): Promise<AuthCredentials> {
-    return this.validateJWT(token, "reset")
+    return authService
+      .validateJWT(token, "reset")
       .then((decodedjwt) => {
         if (!decodedjwt) {
           throw { error: "unauthorized", msg: "Invalid Token" };
@@ -525,46 +689,6 @@ export class AuthController extends BaseController {
       })
       .catch((err) => {
         throw { error: "unauthorized", msg: err };
-      });
-  }
-
-  public validateJWT(token: string, type: string): Promise<JWTPayload> {
-    // Decode token
-    let decodedjwt: JWTPayload;
-    try {
-      decodedjwt = jwt.verify(token, config.jwt.secret) as JWTPayload;
-    } catch (err) {
-      return Promise.reject(err);
-    }
-    const reqTime = Date.now() / 1000;
-    // Check if token expired
-    if (decodedjwt.exp <= reqTime) {
-      return Promise.reject("Token expired");
-    }
-    // Check if token is early
-    if (!_.isUndefined(decodedjwt.nbf) && reqTime <= decodedjwt.nbf) {
-      return Promise.reject("This token is early.");
-    }
-
-    // If audience doesn't match
-    if (config.jwt[type].audience !== decodedjwt.aud) {
-      return Promise.reject("This token cannot be accepted for this domain.");
-    }
-
-    // If the subject doesn't match
-    if (config.jwt[type].subject !== decodedjwt.sub) {
-      return Promise.reject("This token cannot be used for this request.");
-    }
-
-    // Check if blacklisted
-    return JWTBlacklist.findOne({ where: { token: token } })
-      .then((result) => {
-        // if exists in blacklist, reject
-        if (result != null) return Promise.reject("This Token is blacklisted.");
-        return decodedjwt;
-      })
-      .catch((err) => {
-        return Promise.reject(err);
       });
   }
 }

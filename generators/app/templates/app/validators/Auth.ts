@@ -52,3 +52,9 @@ export const AuthChangeSchema: Joi.ObjectSchema = Joi.object({
     .max(255)
     .required(),
 });
+
+export const AuthResendConfirmSchema: Joi.ObjectSchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .max(255),
+});
