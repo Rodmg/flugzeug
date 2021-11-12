@@ -6,6 +6,7 @@ import {
   getCustomSchemaResponse,
   getHttpCode,
   getRouteSummary,
+  getSchemaParameters,
   getSchemaRequestName,
   getSchemaResponseName,
   isCustomSchemaRequest,
@@ -19,6 +20,8 @@ import {
   getRouteMetaData,
   isRoute,
   getAuthMetaData,
+  getControllerAuthMetaData,
+  isRouteAuth,
 } from "@/libraries/routes/decorators";
 
 import {
@@ -27,6 +30,7 @@ import {
   updateSchemaGenerator,
 } from "./schemaGenerators";
 import pathGenerator from "./pathsGenerator";
+import _ from "lodash";
 
 const DOCUMENTATION_DIR = path.join(__dirname, "../../../app/documentation");
 
@@ -138,15 +142,31 @@ for (const controller of controllers) {
       if (isRoute(controller, property)) {
         // route config
         const routeConfig = getRouteMetaData(controller, property);
-        const isAuthRequired: boolean = getAuthMetaData(controller, property);
+
+        const isAuthRequired = (() => {
+          //route auth config
+          const isRouteAuthPresent = isRouteAuth(controller, property);
+          if (isRouteAuthPresent) {
+            return getAuthMetaData(controller, property);
+          } else {
+            //controller Auth config
+            return getControllerAuthMetaData(controller.constructor);
+          }
+        })();
         const path: string =
           `${controller.name}` + formatPath(routeConfig.path);
-        const parameters: Array<object> = extractPathParameters(path);
+        const parameters: Array<object> = _.unionWith(
+          getSchemaParameters(controller, property),
+          extractPathParameters(path),
+          (item1, item2) => {
+            return item1.name == item2.name && item1.in == item2.in;
+          },
+        );
         const requestSchemaName = getSchemaRequestName(controller, property);
         const responseSchemaName = getSchemaResponseName(controller, property);
         const routeSummary = getRouteSummary(controller, property);
         const searchParameters = addSearchParameters(controller, property);
-        const httpCode = getHttpCode(controller, property);
+        const responseHttpCode = getHttpCode(controller, property);
 
         //register custom schemas if is required
         if (isCustomSchemaRequest(controller, property)) {
@@ -172,7 +192,7 @@ for (const controller of controllers) {
             parameters,
             routeSummary,
             searchParameters,
-            httpCode,
+            responseHttpCode,
           ),
         };
       }

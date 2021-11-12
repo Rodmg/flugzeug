@@ -1,9 +1,17 @@
 import { BaseController, handleServerError } from "@/libraries/BaseController";
 import { parseLimit, parseOffset } from "@/libraries/ModelController";
-import { Controller, Get } from "@/libraries/routes/decorators";
+import {
+  Auth,
+  Controller,
+  Get,
+  Middlewares,
+} from "@/libraries/routes/decorators";
+import { hasAdminAccess } from "@/policies/Authorization";
 const importedCtrlsAdmin = require("require-dir-all")("../admin");
 import { Request, Response } from "express";
 @Controller("model")
+@Auth()
+@Middlewares([hasAdminAccess()])
 class ModelAdmin extends BaseController {
   private modelAdminList: string[];
   constructor() {
@@ -35,7 +43,7 @@ class ModelAdmin extends BaseController {
   }
   private generateModelList() {
     if (!this.modelAdminList) {
-      this.modelAdminList = Object.keys(importedCtrlsAdmin).map(k => {
+      this.modelAdminList = Object.keys(importedCtrlsAdmin).map((k) => {
         return importedCtrlsAdmin[k].default.name;
       });
     }

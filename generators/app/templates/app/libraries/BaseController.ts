@@ -8,8 +8,15 @@ import {
   HttpMethod,
   getAuthMetaData,
   getMiddlewares,
-  getAuthMiddlewares,
+  getAuthorizationMetaData,
+  getControllerAuthMetaData,
+  isRouteAuth,
+  isRouteAuthorization,
+  getControllerAuthorizationMetaData,
+  isRouteMiddlewares,
+  getControllerMiddlewaresMetaData,
 } from "@/libraries/routes/decorators";
+import { authorize } from "@/policies/Authorization";
 
 export enum ControllerErrors {
   NOT_FOUND,
@@ -46,18 +53,47 @@ export class BaseController {
     //iterate through all numerable properties
     for (const property in this) {
       if (isRoute(this, property)) {
-        const isAuthRequired = getAuthMetaData(this, property);
+        const isRouteAuthPresent = isRouteAuth(this, property);
+        const isRouteAuthRequired = getAuthMetaData(this, property);
+        const isControllerAuthRequired = getControllerAuthMetaData(
+          this.constructor,
+        );
+
+        const isRouteAuthorizationPresent = isRouteAuthorization(
+          this,
+          property,
+        );
+        const isRouteAuthorizationRequired = getAuthorizationMetaData(
+          this,
+          property,
+        );
+        const isControllerAuthorizationRequired = getControllerAuthorizationMetaData(
+          this.constructor,
+        );
 
         let functionsChain: Array<Function> = [];
 
-        //middlewares config
-
-        if (isAuthRequired) {
+        //route auth config
+        if (
+          (isRouteAuthPresent && isRouteAuthRequired) ||
+          (!isRouteAuthPresent && isControllerAuthRequired)
+        )
           functionsChain.push(validateJWT("access"));
-          functionsChain.push(getAuthMiddlewares(this, property));
-        }
 
-        functionsChain.push(getMiddlewares(this, property));
+        //Add Authorization middleware
+        if (
+          (isRouteAuthorizationPresent && isRouteAuthorizationRequired) ||
+          (!isRouteAuthorizationPresent && isControllerAuthorizationRequired)
+        )
+          functionsChain.push(authorize());
+
+        //middlewares config
+        if (isRouteMiddlewares(this, property))
+          functionsChain.push(getMiddlewares(this, property));
+        else
+          functionsChain.push(
+            getControllerMiddlewaresMetaData(this.constructor),
+          );
 
         //@ts-ignore
         functionsChain.push(this[property]);

@@ -1,4 +1,10 @@
+import _ from "lodash";
 import { ModelCtor } from "sequelize";
+import {
+  ApiDocsSchemaParams,
+  ApiDocsSchemaRequest,
+  ApiDocsSchemaResponse,
+} from "../documentation/decorators";
 export enum HttpMethod {
   GET = "GET",
   POST = "POST",
@@ -26,43 +32,91 @@ export function Controller(name: string, model?: ModelCtor<any>) {
   };
 }
 
+export type MethodDecoratorOptions = {
+  authentication: boolean;
+  authorization: boolean;
+  middlewares?: Array<Function>;
+
+  routeSummary?: string;
+  schemaRequest?: {
+    name: string;
+    schema?: object;
+  };
+  schemaResponse?: {
+    name: string;
+    schema?: object;
+    httpCode?: number;
+  };
+  schemaParams?: Array<object>;
+};
+
 //Method Decorators
-export function Get(path: string = "/") {
-  return new ControllerMethodDecorator(HttpMethod.GET, path).decorateMethod;
+export function Get(path: string = "/", options?: MethodDecoratorOptions) {
+  return new ControllerMethodDecorator(HttpMethod.GET, path, options)
+    .decorateMethod;
 }
-export function Post(path: string = "/") {
-  return new ControllerMethodDecorator(HttpMethod.POST, path).decorateMethod;
+export function Post(path: string = "/", options?: MethodDecoratorOptions) {
+  return new ControllerMethodDecorator(HttpMethod.POST, path, options)
+    .decorateMethod;
 }
-export function Put(path: string = "/") {
-  return new ControllerMethodDecorator(HttpMethod.PUT, path).decorateMethod;
+export function Put(path: string = "/", options?: MethodDecoratorOptions) {
+  return new ControllerMethodDecorator(HttpMethod.PUT, path, options)
+    .decorateMethod;
 }
-export function Delete(path: string = "/") {
-  return new ControllerMethodDecorator(HttpMethod.DELETE, path).decorateMethod;
+export function Delete(path: string = "/", options?: MethodDecoratorOptions) {
+  return new ControllerMethodDecorator(HttpMethod.DELETE, path, options)
+    .decorateMethod;
 }
-export function Auth(middlewares?: Array<Function>) {
-  return (target: any, propertyKey: string) => {
-    Reflect.defineMetadata("auth", true, target, propertyKey);
-    if (middlewares)
-      Reflect.defineMetadata(
-        "authMiddlewares",
-        middlewares,
-        target,
-        propertyKey,
-      );
+//Class and Property decorators
+export function Auth(active: boolean = true) {
+  return (target: any, propertyKey?: string) => {
+    let authKey = "auth";
+    let targetKey = target;
+    //is a class decorator
+    if (!propertyKey) {
+      authKey = "controllerAuth";
+      targetKey = targetKey.prototype;
+    }
+    Reflect.defineMetadata(authKey, active, targetKey, propertyKey);
+  };
+}
+export function Authorization(active: boolean = true) {
+  return (target: any, propertyKey?: string) => {
+    let authorizationKey = "authorization";
+    let targetKey = target;
+    //is a class decorator
+    if (!propertyKey) {
+      authorizationKey = "controllerAuthorization";
+      targetKey = targetKey.prototype;
+    }
+    Reflect.defineMetadata(authorizationKey, active, target, propertyKey);
   };
 }
 export function Middlewares(middlewares: Array<Function>) {
-  return (target: any, propertyKey: string) => {
-    Reflect.defineMetadata("middlewares", middlewares, target, propertyKey);
+  return (target: any, propertyKey?: string) => {
+    let middlewaresKey = "middlewares";
+    let targetKey = target;
+    //is a class decorator
+    if (!propertyKey) {
+      middlewaresKey = "controllerMiddlewares";
+      targetKey = targetKey.prototype;
+    }
+    Reflect.defineMetadata(middlewaresKey, middlewares, target, propertyKey);
   };
 }
 
 class ControllerMethodDecorator {
   private httpMethod: HttpMethod;
   private path: string;
-  constructor(httpMethod: HttpMethod, path: string) {
+  private options: MethodDecoratorOptions;
+  constructor(
+    httpMethod: HttpMethod,
+    path: string,
+    options?: MethodDecoratorOptions,
+  ) {
     this.httpMethod = httpMethod;
     this.path = path;
+    this.options = options;
   }
 
   public decorateMethod = (
@@ -73,6 +127,42 @@ class ControllerMethodDecorator {
     // Metdata
     Reflect.defineMetadata("httpMethod", this.httpMethod, target, propertyKey);
     Reflect.defineMetadata("path", this.path, target, propertyKey);
+    //complete definition using Method decorator
+    if (this.options) {
+      //auth
+      Reflect.defineMetadata(
+        "auth",
+        this.options.authentication,
+        target,
+        propertyKey,
+      );
+      //authorization
+      Authorization(this.options.authorization)(target, propertyKey);
+      //Middlewares
+      if (!_.isUndefined(this.options.middlewares))
+        Middlewares(this.options.middlewares)(target, propertyKey);
+      //Schema request
+      if (!_.isUndefined(this.options.schemaRequest)) {
+        const schemaRequest = this.options.schemaRequest;
+        ApiDocsSchemaRequest(schemaRequest.name, schemaRequest.schema)(
+          target,
+          propertyKey,
+        );
+      }
+      //Schema response
+      if (!_.isUndefined(this.options.schemaResponse)) {
+        const schemaResponse = this.options.schemaResponse;
+        ApiDocsSchemaResponse(
+          schemaResponse.name,
+          schemaResponse.schema,
+          schemaResponse.httpCode,
+        )(target, propertyKey);
+      }
+      //Schema params
+      if (!_.isUndefined(this.options.schemaParams)) {
+        ApiDocsSchemaParams(this.options.schemaParams)(target, propertyKey);
+      }
+    }
 
     //if there is a descriptor for normal functions
     if (descriptor) {
@@ -101,7 +191,17 @@ class ControllerMethodDecorator {
 export function getControllerMetadata(target) {
   return Reflect.getMetadata("controllerName", target.prototype) ?? "";
 }
-
+export function getControllerAuthMetaData(target) {
+  return Reflect.getMetadata("controllerAuth", target.prototype) ?? false;
+}
+export function getControllerAuthorizationMetaData(target) {
+  return (
+    Reflect.getMetadata("controllerAuthorization", target.prototype) ?? false
+  );
+}
+export function getControllerMiddlewaresMetaData(target) {
+  return Reflect.getMetadata("controllerMiddlewares", target.prototype) ?? [];
+}
 export function isRoute(target: any, propertyKey: string): boolean {
   return Reflect.hasMetadata("httpMethod", target, propertyKey);
 }
@@ -119,10 +219,23 @@ export function getRouteMetaData(
 export function getAuthMetaData(target, propertyKey) {
   return Reflect.getMetadata("auth", target, propertyKey) ?? false;
 }
-export function getAuthMiddlewares(target, propertyKey) {
-  return Reflect.getMetadata("authMiddlewares", target, propertyKey) ?? [];
+export function isRouteAuth(target: any, propertyKey: string): boolean {
+  return Reflect.hasMetadata("auth", target, propertyKey);
+}
+
+export function getAuthorizationMetaData(target, propertyKey) {
+  return Reflect.getMetadata("authorization", target, propertyKey) ?? false;
+}
+export function isRouteAuthorization(
+  target: any,
+  propertyKey: string,
+): boolean {
+  return Reflect.hasMetadata("authorization", target, propertyKey);
 }
 
 export function getMiddlewares(target, propertyKey) {
   return Reflect.getMetadata("middlewares", target, propertyKey) ?? [];
+}
+export function isRouteMiddlewares(target: any, propertyKey: string): boolean {
+  return Reflect.hasMetadata("middlewares", target, propertyKey);
 }
