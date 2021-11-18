@@ -4,10 +4,25 @@ import { log } from "@/libraries/Log";
 
 const importedCtrls1 = require("require-dir-all")("controllers/v1");
 const controllers1 = Object.keys(importedCtrls1).map(
-  k => importedCtrls1[k].default,
+  (k) => importedCtrls1[k].default,
+);
+
+const importedCtrlsAdmin = require("require-dir-all")("controllers/admin");
+const controllersAdmin = Object.keys(importedCtrlsAdmin).map(
+  (k) => importedCtrlsAdmin[k].default,
 );
 
 export function routes(app: Application) {
+  //up admin Controllers
+  for (const controller of controllersAdmin) {
+    if (controller.name == null || controller.name.length === 0) {
+      log.error("Invalid controller name:", controller.name, controller);
+      continue;
+    }
+    app.use(`/api/admin/${controller.name}`, controller.routes());
+  }
+
+  //up v1 Controllers
   for (const controller of controllers1) {
     if (controller.name == null || controller.name.length === 0) {
       log.error("Invalid controller name:", controller.name, controller);

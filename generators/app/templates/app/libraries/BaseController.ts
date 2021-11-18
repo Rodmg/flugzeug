@@ -8,6 +8,7 @@ import {
   HttpMethod,
   getAuthMetaData,
   getMiddlewares,
+  getAuthMiddlewares,
 } from "@/libraries/routes/decorators";
 
 export enum ControllerErrors {
@@ -53,6 +54,7 @@ export class BaseController {
 
         if (isAuthRequired) {
           functionsChain.push(validateJWT("access"));
+          functionsChain.push(getAuthMiddlewares(this, property));
         }
 
         functionsChain.push(getMiddlewares(this, property));

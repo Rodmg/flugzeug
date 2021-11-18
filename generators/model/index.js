@@ -59,6 +59,11 @@ module.exports = class extends Generator {
       this.destinationPath(`app/models/${this.props.modelName}.ts`),
       this.props,
     );
+    this.fs.copyTpl(
+      this.templatePath("adminControllerTemplate.ts"),
+      this.destinationPath(`app/controllers/admin/${this.props.modelName}.ts`),
+      this.props,
+    );
   }
 
   end() {
@@ -67,6 +72,11 @@ module.exports = class extends Generator {
       "prettier",
       "--write",
       `app/models/${this.props.modelName}.ts`,
+    ]);
+    this.spawnCommandSync("npx", [
+      "prettier",
+      "--write",
+      `app/controllers/admin/${this.props.modelName}.ts`,
     ]);
   }
 };
