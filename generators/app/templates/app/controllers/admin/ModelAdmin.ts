@@ -1,7 +1,7 @@
 import { BaseController, handleServerError } from "@/libraries/BaseController";
 import { parseLimit, parseOffset } from "@/libraries/ModelController";
 import {
-  Auth,
+  Authentication,
   Controller,
   Get,
   Middlewares,
@@ -10,7 +10,7 @@ import { hasAdminAccess } from "@/policies/Authorization";
 const importedCtrlsAdmin = require("require-dir-all")("../admin");
 import { Request, Response } from "express";
 @Controller("model")
-@Auth()
+@Authentication()
 @Middlewares([hasAdminAccess()])
 class ModelAdmin extends BaseController {
   private modelAdminList: string[];

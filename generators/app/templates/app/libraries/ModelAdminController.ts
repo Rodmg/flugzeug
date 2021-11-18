@@ -7,11 +7,11 @@ import {
   Get,
   Put,
   Delete,
-  Auth,
+  Authentication,
   Post,
   Middlewares,
 } from "@/libraries/routes/decorators";
-@Auth()
+@Authentication()
 @Middlewares([hasAdminAccess()])
 export class ModelAdminController<T extends Model> extends ModelController<T> {
   protected modelSchema: object;

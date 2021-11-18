@@ -4,7 +4,7 @@ import { filterOwner, appendUser } from "@/policies/General";
 import { validateBody } from "@/libraries/Validator";
 import { ProfileSchema } from "@/validators/Profile";
 import {
-  Auth,
+  Authentication,
   Authorization,
   Controller,
   Get,
@@ -12,7 +12,7 @@ import {
   Put,
 } from "@/libraries/routes/decorators";
 
-@Auth()
+@Authentication()
 @Authorization()
 @Middlewares([filterOwner()])
 @Controller("profile", Profile)

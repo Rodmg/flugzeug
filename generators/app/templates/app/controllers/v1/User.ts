@@ -9,7 +9,7 @@ import {
   Get,
   Put,
   Delete,
-  Auth,
+  Authentication,
   Middlewares,
   Authorization,
 } from "@/libraries/routes/decorators";
@@ -20,7 +20,7 @@ import {
 } from "@/libraries/documentation/decorators";
 
 @ApiDocs(true)
-@Auth()
+@Authentication()
 @Authorization()
 @Controller("user", User)
 export class UserController extends ModelController<User> {

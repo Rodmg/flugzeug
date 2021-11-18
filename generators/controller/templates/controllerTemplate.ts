@@ -11,7 +11,7 @@ import {
   Put,
   Post,
   Delete,
-  Auth,
+  Authentication,
   Middlewares,
   Authorization
 } from "@/libraries/routes/decorators";
@@ -24,7 +24,7 @@ import {
 @Controller("<%- pathName %>", <%- modelName %>)
 @ApiDocs()
 <% if (needsAuth) { %>
-@Auth()
+@Authentication()
 @Authorization()
 <% } %>
 export class <%- controllerName %>Controller extends ModelController<<%- modelName %>> {

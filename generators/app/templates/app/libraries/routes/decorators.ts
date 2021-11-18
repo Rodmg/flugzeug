@@ -68,9 +68,9 @@ export function Delete(path: string = "/", options?: MethodDecoratorOptions) {
     .decorateMethod;
 }
 //Class and Property decorators
-export function Auth(active: boolean = true) {
+export function Authentication(active: boolean = true) {
   return (target: any, propertyKey?: string) => {
-    let authKey = "auth";
+    let authKey = "authentication";
     let targetKey = target;
     //is a class decorator
     if (!propertyKey) {
@@ -128,10 +128,10 @@ class ControllerMethodDecorator {
     Reflect.defineMetadata("httpMethod", this.httpMethod, target, propertyKey);
     Reflect.defineMetadata("path", this.path, target, propertyKey);
     //complete definition using Method decorator
-    if (this.options) {
+    if (!_.isUndefined(this.options)) {
       //auth
       Reflect.defineMetadata(
-        "auth",
+        "authentication",
         this.options.authentication,
         target,
         propertyKey,
@@ -217,10 +217,10 @@ export function getRouteMetaData(
 }
 
 export function getAuthMetaData(target, propertyKey) {
-  return Reflect.getMetadata("auth", target, propertyKey) ?? false;
+  return Reflect.getMetadata("authentication", target, propertyKey) ?? false;
 }
 export function isRouteAuth(target: any, propertyKey: string): boolean {
-  return Reflect.hasMetadata("auth", target, propertyKey);
+  return Reflect.hasMetadata("authentication", target, propertyKey);
 }
 
 export function getAuthorizationMetaData(target, propertyKey) {
