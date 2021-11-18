@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { config } from "@/config";
 import { Op, Model, ModelCtor } from "sequelize";
 import _ from "lodash";
+import { percentEncode } from "./util";
 import {
   BaseController,
   ControllerErrors,
@@ -93,12 +94,21 @@ export function sanitizeAttributes(attributes: any): any {
   return attributes;
 }
 
+function decodeQueryString(query: string) {
+  // !	 #	 $	 &	 '	 (	 )	 *	 +	 ,	 /	 :	 ;	 =	 ?	 @	 [	 ]
+  //%21	%23	%24	%26	%27	%28	%29	%2A	%2B	%2C	%2F	%3A	%3B	%3D	%3F	%40	%5B	%5D
+  Object.keys(percentEncode).forEach((key) => {
+    query = query.replace(new RegExp(key, "g"), percentEncode[key]);
+  });
+  return query;
+}
 export function parseWhere(req: Request): any {
   // Look for explicitly specified `where` parameter.
   let where: any = req.query.where;
   // If `where` parameter is a string, try to interpret it as JSON
   if (_.isString(where)) {
     try {
+      where = decodeQueryString(where);
       where = JSON.parse(where);
     } catch (e) {
       where = null;
