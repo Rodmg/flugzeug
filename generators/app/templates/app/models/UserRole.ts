@@ -1,4 +1,10 @@
-import { Table, Column, DataType, ForeignKey } from "sequelize-typescript";
+import {
+  Table,
+  Column,
+  DataType,
+  ForeignKey,
+  PrimaryKey,
+} from "sequelize-typescript";
 import { BaseModel } from "@/libraries/BaseModel";
 import { User } from "@/models/User";
 import { Role } from "@/models/Role";
@@ -7,6 +13,9 @@ import { Role } from "@/models/Role";
   tableName: "user_role",
 })
 export class UserRole extends BaseModel<UserRole> {
+  @Column({ primaryKey: true })
+  id: number;
+
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,
