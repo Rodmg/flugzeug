@@ -5,7 +5,7 @@ enum SchemaRequired {
   updateRequired = "updateRequired",
 }
 //classDecorator
-//active Swager documentation for a Model
+//active documentation
 export function ApiDocs(active: boolean = true) {
   return (target) => {
     Reflect.defineMetadata("apiDocs", active, target.prototype);
@@ -13,7 +13,7 @@ export function ApiDocs(active: boolean = true) {
   };
 }
 
-// property decorator
+//Model
 export function RequestRequired(active: boolean = true) {
   return new ModelPropertyDecorator(SchemaRequired.requestRequired, active)
     .decorateProperty;
@@ -71,6 +71,13 @@ export function ApiDocsSchemaRequest(
     }
   };
 }
+
+export function ApiDocsSchemaParams(schema) {
+  return (target: any, propertyKey: string) => {
+    Reflect.defineMetadata("schemaParams", schema, target, propertyKey);
+  };
+}
+
 export function ApiDocsRouteSummary(description: string) {
   return (target: any, propertyKey: string) => {
     Reflect.defineMetadata("routeSummary", description, target, propertyKey);
@@ -127,7 +134,7 @@ export function getUpdateRequired(target, propertyKey) {
   );
 }
 
-//RESPONSE SCHEMAS
+//Response Schema
 export function getSchemaResponseName(target: any, propertyKey: string) {
   return Reflect.getMetadata("schemaResponse", target, propertyKey) ?? null;
 }
@@ -146,7 +153,7 @@ export function getCustomSchemaResponse(target: any, propertyKey: string) {
     Reflect.getMetadata("customSchemaResponse", target, propertyKey) ?? null
   );
 }
-//REQUEST SCHEMAS
+//Request Schema
 export function getSchemaRequestName(target: any, propertyKey: string) {
   return Reflect.getMetadata("schemaRequest", target, propertyKey) ?? null;
 }
@@ -161,6 +168,14 @@ export function getCustomSchemaRequest(target: any, propertyKey: string) {
     Reflect.getMetadata("customSchemaRequest", target, propertyKey) ?? null
   );
 }
+//Request Params Schema
+export function getSchemaParameters(
+  target: any,
+  propertyKey: string,
+): Array<any> {
+  return Reflect.getMetadata("schemaParams", target, propertyKey) ?? [];
+}
+
 //Summary
 export function getRouteSummary(target: any, propertyKey: string) {
   return Reflect.getMetadata("routeSummary", target, propertyKey) ?? "";

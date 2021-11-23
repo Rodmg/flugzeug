@@ -4,12 +4,20 @@ import {
   ControllerErrors,
 } from "@/libraries/BaseController";
 import { parseLimit, parseOffset } from "@/libraries/ModelController";
-import { Controller, Get } from "@/libraries/routes/decorators";
+import {
+  Authentication,
+  Controller,
+  Get,
+  Middlewares,
+} from "@/libraries/routes/decorators";
+import { hasAdminAccess } from "@/policies/Authorization";
 const importedCtrlsAdmin = require("require-dir-all")("../admin");
 import { Request, Response } from "express";
 import _ from "lodash";
 import { log } from "@/libraries/Log";
 @Controller("model")
+@Authentication()
+@Middlewares([hasAdminAccess()])
 class ModelAdmin extends BaseController {
   private modelAdminList: string[];
   constructor() {

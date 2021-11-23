@@ -28,7 +28,7 @@ import {
   Controller,
   Get,
   Post,
-  Auth,
+  Authentication,
   Middlewares,
 } from "@/libraries/routes/decorators";
 import {
@@ -165,7 +165,7 @@ export class AuthController extends BaseController {
   };
 
   @Post("/logout")
-  @Auth()
+  @Authentication()
   logout = (req: Request, res: Response) => {
     const token: string = req.session.jwtstring;
     const decodedjwt: JWTPayload = req.session.jwt;
@@ -338,7 +338,7 @@ export class AuthController extends BaseController {
   };
 
   @Post("/change")
-  @Auth()
+  @Authentication()
   @Middlewares([validateBody(AuthChangeSchema)])
   changePassword = (req: Request, res: Response) => {
     const email = req.body.email;
@@ -390,7 +390,7 @@ export class AuthController extends BaseController {
   };
 
   @Post("/refresh")
-  @Auth()
+  @Authentication()
   refreshToken = (req: Request, res: Response) => {
     // Refresh token has been previously authenticated in validateJwt as refresh token
     const refreshToken: string = req.session.jwtstring;
