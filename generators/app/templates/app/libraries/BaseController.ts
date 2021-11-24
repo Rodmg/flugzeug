@@ -15,7 +15,7 @@ import {
   getControllerAuthorizationMetaData,
   isRouteMiddlewares,
   getControllerMiddlewaresMetaData,
-} from "@/libraries/routes/decorators";
+} from "flugzeug";
 import { authorize } from "@/policies/Authorization";
 
 export enum ControllerErrors {

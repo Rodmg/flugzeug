@@ -30,13 +30,13 @@ import {
   Post,
   Authentication,
   Middlewares,
-} from "@/libraries/routes/decorators";
+} from "flugzeug";
 import {
   ApiDocs,
   ApiDocsRouteSummary,
   ApiDocsSchemaResponse,
   ApiDocsSchemaRequest,
-} from "@/libraries/documentation/decorators";
+} from "flugzeug";
 import { Role } from "@/models/Role";
 
 @Controller("auth")

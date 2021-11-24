@@ -1,4 +1,4 @@
-import { Controller } from "@/libraries/routes/decorators";
+import { Controller } from "flugzeug";
 import { ModelAdminController } from "@/libraries/ModelAdminController";
 import { UserRole } from "@/models/UserRole";
 

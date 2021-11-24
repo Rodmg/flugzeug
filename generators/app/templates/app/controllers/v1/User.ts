@@ -12,12 +12,12 @@ import {
   Authentication,
   Middlewares,
   Authorization,
-} from "@/libraries/routes/decorators";
+} from "flugzeug";
 import {
   ApiDocs,
   ApiDocsRouteSummary,
   ApiDocsAddSearchParameters,
-} from "@/libraries/documentation/decorators";
+} from "flugzeug";
 
 @ApiDocs(true)
 @Authentication()

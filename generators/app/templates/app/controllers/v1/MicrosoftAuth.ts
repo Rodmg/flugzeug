@@ -12,7 +12,7 @@ import authService from "@/services/AuthService";
 import { Role } from "@/models/Role";
 import onboardingService from "@/services/OnboardingService";
 import { Profile } from "@/models/Profile";
-import { Controller, Get, Middlewares } from "@/libraries/routes/decorators";
+import { Controller, Get, Middlewares } from "flugzeug";
 
 @Controller("microsoftauth")
 export class MicrosoftAuthController extends BaseController {
