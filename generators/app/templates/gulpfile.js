@@ -137,6 +137,16 @@ function doValidators() {
 
 const makeValidators = gulp.series(compile, doValidators);
 
+function createDBDiagram() {
+  return execute([
+    "--require",
+    "source-map-support/register",
+    "dist/libraries/documentation/dbDiagram.js",
+  ]);
+}
+
+const dbDiagram = gulp.series(compile, createDBDiagram);
+
 const test = gulp.series(build, shell.task("npm test"));
 
 const production = gulp.series(build);
@@ -161,5 +171,6 @@ module.exports = {
   production,
   documentation,
   makeValidators,
+  dbDiagram,
   default: production,
 };
