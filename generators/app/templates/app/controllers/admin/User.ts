@@ -1,5 +1,5 @@
 import { User } from "@/models/User";
-import { Controller } from "@/libraries/routes/decorators";
+import { Controller } from "flugzeug";
 
 import { ModelAdminController } from "@/libraries/ModelAdminController";
 

@@ -10,7 +10,7 @@ import {
   Get,
   Middlewares,
   Put,
-} from "@/libraries/routes/decorators";
+} from "flugzeug";
 
 @Authentication()
 @Authorization()

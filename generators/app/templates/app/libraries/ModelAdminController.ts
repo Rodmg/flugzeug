@@ -10,7 +10,7 @@ import {
   Authentication,
   Post,
   Middlewares,
-} from "@/libraries/routes/decorators";
+} from "flugzeug";
 @Authentication()
 @Middlewares([hasAdminAccess()])
 export class ModelAdminController<T extends Model> extends ModelController<T> {

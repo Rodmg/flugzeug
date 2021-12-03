@@ -20,7 +20,7 @@ import {
   ResponseRequired,
   RequestRequired,
   UpdateRequired,
-} from "@/libraries/documentation/decorators";
+} from "flugzeug";
 import { UserRole } from "./UserRole";
 import { Role } from "./Role";
 import { config } from "@/config";

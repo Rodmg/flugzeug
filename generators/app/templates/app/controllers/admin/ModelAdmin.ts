@@ -9,7 +9,7 @@ import {
   Controller,
   Get,
   Middlewares,
-} from "@/libraries/routes/decorators";
+} from "flugzeug";
 import { hasAdminAccess } from "@/policies/Authorization";
 const importedCtrlsAdmin = require("require-dir-all")("../admin");
 import { Request, Response } from "express";
