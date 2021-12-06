@@ -73,7 +73,7 @@
     "body-parser": "1.19.0",
     "compression": "1.7.4",
     "deep-diff": "^1.0.2",
-    "flugzeug": "^3.0.0-beta",
+    "flugzeug": "^3.0.2-beta",
     "dotenv": "6.0.0",
     "ejs": "2.6.1",
     "express": "4.17.1",
