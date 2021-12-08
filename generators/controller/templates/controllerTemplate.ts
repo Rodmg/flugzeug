@@ -13,13 +13,11 @@ import {
   Delete,
   Authentication,
   Middlewares,
-  Authorization
-} from "@/libraries/routes/decorators";
-import {
+  Authorization,
   ApiDocs,
   ApiDocsRouteSummary,
   ApiDocsAddSearchParameters
-} from "@/libraries/documentation/decorators";
+} from "flugzeug";
 
 @Controller("<%- pathName %>", <%- modelName %>)
 @ApiDocs()
@@ -33,7 +31,7 @@ export class <%- controllerName %>Controller extends ModelController<<%- modelNa
   @Get("/")
   <% if (needsAuth && belongsToUser) {%> @Middlewares([ filterOwner() ])<% } %>
   get<%- modelName %>s=(req, res) => this.handleFindAll(req, res);
-  
+
   @ApiDocsRouteSummary("Get a <%- modelName %> by Id")
   @Get("/:id")
   <% if (needsAuth && belongsToUser) {%> @Middlewares([ filterOwner() ])<% } %>

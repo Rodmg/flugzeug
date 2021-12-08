@@ -1,5 +1,5 @@
 import { <%- modelName %> } from "@/models/<%- modelName %>";
-import { Controller } from "@/libraries/routes/decorators";
+import { Controller } from "flugzeug";
 
 import { ModelAdminController } from "@/libraries/ModelAdminController";
 

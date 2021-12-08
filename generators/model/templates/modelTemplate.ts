@@ -10,7 +10,7 @@ import {
   ResponseRequired,
   RequestRequired,
   UpdateRequired,
-} from "@/libraries/documentation/decorators";
+} from "flugzeug";
 import { BaseModel } from "@/libraries/BaseModel";
 
 <% if (belongsToUser) { %>import { User } from "./User";<% } %>
