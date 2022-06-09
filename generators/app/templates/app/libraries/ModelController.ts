@@ -93,7 +93,7 @@ export function sanitizeAttributes(attributes: any): any {
   return attributes;
 }
 
-export function parseWhere(req: Request): any {
+export function parseWhere(req: Request | Partial<Request>): any {
   // Look for explicitly specified `where` parameter.
   let where: any = req.query.where;
   // If `where` parameter is a string, try to interpret it as JSON
@@ -126,19 +126,19 @@ export function parseWhere(req: Request): any {
   return where;
 }
 
-export function parseLimit(req: Request): number {
+export function parseLimit(req: Request | Partial<Request>): number {
   const limit = req.query.limit || config.api.limit;
   const result: number = +limit;
   return result;
 }
 
-export function parseOffset(req: Request): number {
+export function parseOffset(req: Request | Partial<Request>): number {
   const skip = req.query.offset || req.query.skip || config.api.offset;
   const result: number = +skip;
   return result;
 }
 
-export function parseOrder(req: Request): any {
+export function parseOrder(req: Request | Partial<Request>): any {
   try {
     let sort: any = req.query.order || req.query.sort;
     if (sort === undefined) {
@@ -174,7 +174,7 @@ export function parseOrder(req: Request): any {
   }
 }
 
-export function parseInclude(req: Request, model: ModelCtor<any>): Array<any> {
+export function parseInclude(req: Request | Partial<Request>, model: ModelCtor<any>): Array<any> {
   try {
     let include: Array<any> = [];
     const populate: any = req.query.include || req.query.populate;
@@ -264,7 +264,7 @@ export function parseInclude(req: Request, model: ModelCtor<any>): Array<any> {
   }
 }
 
-export function parseAttributes(req: Request): any {
+export function parseAttributes(req: Request | Partial<Request>): any {
   // Look for explicitly specified `attributes` parameter.
   let attributes: any = req.query.attributes;
 
