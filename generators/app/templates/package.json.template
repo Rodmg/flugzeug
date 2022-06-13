@@ -36,6 +36,7 @@
     "@types/jsonwebtoken": "7.2.8",
     "@types/lodash": "4.14.161",
     "@types/method-override": "0.0.31",
+    "@types/mocha": "^9.1.1",
     "@types/morgan": "1.7.35",
     "@types/node": "12.12.62",
     "@types/nodemailer": "^6.4.2",
