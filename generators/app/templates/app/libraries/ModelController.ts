@@ -78,6 +78,11 @@ export function sanitizeAttributes(attributes: any): any {
     }
   }
 
+  // if is array, leave as it is
+  if (_.isArray(attributes)) {
+    return attributes;
+  }
+
   // allow only the object form
   if (!_.isObject(attributes)) attributes = {};
 
@@ -273,6 +278,13 @@ export function parseAttributes(req: Request | Partial<Request>): any {
   // validated object keys
   attributes = sanitizeAttributes(attributes);
   req.session.attributes = sanitizeAttributes(req.session.attributes);
+
+  // if is array, just merge with req.session.attributes (Useful for enforcing policies)
+  if (_.isArray(attributes)) {
+    attributes = _.union(attributes, req.session.attributes);
+
+    return attributes;
+  }
 
   // Merge with req.session.attributes (Useful for enforcing policies)
   attributes.include = _.union(

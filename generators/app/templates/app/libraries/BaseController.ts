@@ -16,11 +16,11 @@ export enum ControllerErrors {
   UNKNOWN_ERROR,
 }
 
-export function parseId(req: Request): number {
+export function parseId(req: Request | Partial<Request>): number {
   return parseInt(req.params.id);
 }
 
-export function parseBody(req: Request): any {
+export function parseBody(req: Request | Partial<Request>): any {
   const body = req.body;
   if (!_.isObject(body)) {
     throw ControllerErrors.UNKNOWN_ERROR;
