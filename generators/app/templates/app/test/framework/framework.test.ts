@@ -5,9 +5,9 @@ import {
   parseOrder,
   parseWhere,
 } from "@/libraries/ModelController";
-import { getRandomColor, months, numToMonth } from "@/libraries/util";
+import { colors, getRandomColor, months, numToMonth } from "@/libraries/util";
 import chai from "chai";
-import { parseBody, parseId } from "../../libraries/Controller";
+import { parseBody, parseId } from "@/libraries/BaseController";
 import { Request } from "express";
 /*
 TESTING API
@@ -161,7 +161,7 @@ describe("Test framework app unit test", () => {
   describe("#getRandomColor", () => {
     const getRandomColorFunc = getRandomColor();
     it("should be get a random color", () => {
-      chai.expect(getRandomColorFunc).to.contain.members(months);
+      chai.expect(getRandomColorFunc).oneOf(colors)
     });
 
     it("should be a number type", () => {
