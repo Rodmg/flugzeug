@@ -4,9 +4,7 @@ process.env.DB_NAME = "app-backend-test";
 import chai from "chai";
 import authService, { JWTPayload } from "@/services/AuthService";
 import { setUpTestDB } from "../util";
-import { number } from "joi";
 import { log } from "@/libraries/Log";
-import { JWTBlacklist } from "@/submodules/src/context/JWTBlacklist/model/JWTBlacklist";
 import { TokenExpiredError } from "jsonwebtoken";
 
 describe("Test basic app unit test", () => {
