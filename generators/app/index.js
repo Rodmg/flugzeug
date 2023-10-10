@@ -47,8 +47,9 @@ module.exports = class extends Generator {
 
     const gitName = this.user.git.name();
     const gitEmail = this.user.git.email();
-    const defaultAuthor = `${gitName || "Me"} <${gitEmail ||
-      "me@example.com"}>`;
+    const defaultAuthor = `${gitName || "Me"} <${
+      gitEmail || "me@example.com"
+    }>`;
 
     const prompts = [
       {
@@ -74,6 +75,7 @@ module.exports = class extends Generator {
           { name: "SQLite", value: "sqlite" },
           { name: "MySQL", value: "mysql" },
           { name: "PostgreSQL", value: "postgres" },
+          { name: "MSSQL", value: "mssql" },
         ],
       },
       {
@@ -82,7 +84,10 @@ module.exports = class extends Generator {
         message: "Database name:",
         default: this._makeName(this.appname),
         filter: this._makeName,
-        when: props => props.dbtype === "mysql" || props.dbtype === "postgres",
+        when: (props) =>
+          props.dbtype === "mysql" ||
+          props.dbtype === "postgres" ||
+          props.dbtype === "mssql",
       },
       {
         type: "confirm",
@@ -92,7 +97,7 @@ module.exports = class extends Generator {
       },
     ];
 
-    return this.prompt(prompts).then(props => {
+    return this.prompt(prompts).then((props) => {
       this.props = props;
     });
   }
@@ -171,7 +176,7 @@ module.exports = class extends Generator {
       );
 
     this._generateJwtSecret()
-      .then(secret => {
+      .then((secret) => {
         this.fs.copyTpl(
           this.templatePath("app/config/index.ts.template"),
           this.destinationPath("app/config/index.ts"),
@@ -200,7 +205,7 @@ module.exports = class extends Generator {
           },
         );
       })
-      .catch(err => {
+      .catch((err) => {
         this.log("Error generating JWT secret", err);
       });
 

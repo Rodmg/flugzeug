@@ -88,6 +88,9 @@
     "pg": "^8.3.3",
     "pg-hstore": "^2.3.3",
 <% } %>
+<% if (dbtype === 'mssql') { %>
+    "tedious": "6.7.1",
+<% } %>
     "node-cron": "1.2.1",
     "nodemailer": "^6.6.1",
     "object-hash": "^2.1.1",

@@ -87,7 +87,7 @@ export const config = {
 
   db: {
     database: process.env.DB_NAME || "<%- dbname %>",
-    username: process.env.DB_USER || "root",
+    username: process.env.DB_USER || "sa",
     password: process.env.DB_PASSWORD || "",
     host: process.env.DB_HOST || "localhost",
     dialect: (process.env.DB_TYPE || "<%- dbtype %>") as Dialect,
